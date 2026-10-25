@@ -1,0 +1,1100 @@
+diff --git a/engines/ultima/metaengine.cpp b/engines/ultima/metaengine.cpp
+index 7db2f0c1..ca7ce8da 100644
+--- a/engines/ultima/metaengine.cpp
++++ b/engines/ultima/metaengine.cpp
+@@ -274,8 +274,13 @@ Common::KeymapArray UltimaMetaEngine::initKeymaps(const char *target) const {
+ 		return Ultima::Nuvie::MetaEngine::initKeymaps(gameId);
+ #endif
+ #ifdef ENABLE_ULTIMA8
+-	if (gameId == "ultima8" || gameId == "remorse" || gameId == "regret")
+-		return Ultima::Ultima8::MetaEngine::initKeymaps(gameId);
++	if (gameId == "ultima8" || gameId == "remorse" || gameId == "regret") {
++		bool modern = gameId == "remorse" && ConfMan.hasKey("crusader_modern_controls", target) &&
++			ConfMan.getBool("crusader_modern_controls", target);
++		bool twinStick = modern && ConfMan.hasKey("crusader_twin_stick", target) &&
++			ConfMan.getBool("crusader_twin_stick", target);
++		return Ultima::Ultima8::MetaEngine::initKeymaps(gameId, modern, twinStick);
++	}
+ #endif
+ 	return Common::KeymapArray();
+ }
+diff --git a/engines/ultima/ultima8/metaengine.cpp b/engines/ultima/ultima8/metaengine.cpp
+index 5dba1f05..7fee9d31 100644
+--- a/engines/ultima/ultima8/metaengine.cpp
++++ b/engines/ultima/ultima8/metaengine.cpp
+@@ -124,8 +124,36 @@ static const KeybindingRecord DEBUG_KEYS[] = {
+ };
+ #endif
+ 
+-Common::KeymapArray MetaEngine::initKeymaps(const Common::String &gameId) {
++static void addDefaultInputs(Common::Action *action, const KeybindingRecord *record, bool modern) {
++	if (record->_input1)
++		action->addDefaultInputMapping(record->_input1);
++	if (record->_input2 && (!modern || !Common::String(record->_input2).hasPrefix("JOY_")))
++		action->addDefaultInputMapping(record->_input2);
++	if (!modern)
++		return;
++
++	static const struct {
++		KeybindingAction _action;
++		const char *_input;
++	} modernInputs[] = {
++		{ ACTION_COMBAT, "JOY_RIGHT_STICK" }, { ACTION_MENU, "JOY_START" },
++		{ ACTION_MOVE_RUN, "JOY_LEFT_TRIGGER" }, { ACTION_USE_SELECTION, "JOY_A" },
++		{ ACTION_SHORT_JUMP, "JOY_B" }, { ACTION_SELECT_ITEMS, "JOY_X" },
++		{ ACTION_NEXT_WEAPON, "JOY_Y" }, { ACTION_USE_INVENTORY, "JOY_BACK" },
++		{ ACTION_ATTACK, "JOY_RIGHT_TRIGGER" }, { ACTION_ROLL_LEFT, "JOY_LEFT_SHOULDER" },
++		{ ACTION_ROLL_RIGHT, "JOY_RIGHT_SHOULDER" }, { ACTION_TOGGLE_CROUCH, "JOY_LEFT_STICK" },
++		{ ACTION_USE_MEDIKIT, "JOY_UP" }, { ACTION_USE_ENERGYCUBE, "JOY_DOWN" },
++		{ ACTION_NEXT_INVENTORY, "JOY_RIGHT" }, { ACTION_GRAB_ITEMS, "JOY_LEFT" }
++	};
++	for (const auto &input : modernInputs) {
++		if (record->_action == input._action)
++			action->addDefaultInputMapping(input._input);
++	}
++}
++
++Common::KeymapArray MetaEngine::initKeymaps(const Common::String &gameId, bool modern, bool twinStick) {
+ 	Common::KeymapArray keymapArray;
++	modern = modern && gameId == "remorse";
+ 
+ 	// Core keymaps
+ 	Common::U32String desc = (gameId == "ultima8" ? _("Ultima VIII") : _("Crusader"));
+@@ -138,34 +166,62 @@ Common::KeymapArray MetaEngine::initKeymaps(const Common::String &gameId) {
+ 	act = new Common::Action(Common::kStandardActionLeftClick, _("Left click"));
+ 	act->setLeftClickEvent();
+ 	act->addDefaultInputMapping("MOUSE_LEFT");
+-	act->addDefaultInputMapping("JOY_A");
++	if (!modern)
++		act->addDefaultInputMapping("JOY_A");
+ 	keyMap->addAction(act);
+ 
+ 	act = new Common::Action(Common::kStandardActionRightClick, _("Right click"));
+ 	act->setRightClickEvent();
+ 	act->addDefaultInputMapping("MOUSE_RIGHT");
+-	act->addDefaultInputMapping("JOY_B");
++	if (!modern)
++		act->addDefaultInputMapping("JOY_B");
+ 	keyMap->addAction(act);
+ 
+ 	for (const KeybindingRecord *r = COMMON_KEYS; r->_id; ++r) {
+ 		act = new Common::Action(r->_id, _(r->_desc));
+ 		act->setCustomEngineActionEvent(r->_action);
+-		if (r->_input1)
+-			act->addDefaultInputMapping(r->_input1);
+-		if (r->_input2)
+-			act->addDefaultInputMapping(r->_input2);
++		addDefaultInputs(act, r, modern);
+ 		keyMap->addAction(act);
+ 	}
+ 
++	if (modern) {
++		static const KeybindingRecord stickKeys[] = {
++			{ ACTION_STICK_LEFT, "STICK_LEFT", _s("Face / move left"), "JOY_LEFT_STICK_X-", nullptr },
++			{ ACTION_STICK_RIGHT, "STICK_RIGHT", _s("Face / move right"), "JOY_LEFT_STICK_X+", nullptr },
++			{ ACTION_STICK_UP, "STICK_UP", _s("Face / move up"), "JOY_LEFT_STICK_Y-", nullptr },
++			{ ACTION_STICK_DOWN, "STICK_DOWN", _s("Face / move down"), "JOY_LEFT_STICK_Y+", nullptr },
++			{ ACTION_NONE, nullptr, nullptr, nullptr, nullptr }
++		};
++		for (const KeybindingRecord *r = stickKeys; r->_id; ++r) {
++			act = new Common::Action(r->_id, _(r->_desc));
++			act->setCustomBackendActionAxisEvent(r->_action);
++			act->addDefaultInputMapping(r->_input1);
++			keyMap->addAction(act);
++		}
++	}
++
++	if (modern && twinStick) {
++		static const KeybindingRecord aimKeys[] = {
++			{ ACTION_AIM_LEFT, "AIM_LEFT", _s("Aim left"), "JOY_RIGHT_STICK_X-", nullptr },
++			{ ACTION_AIM_RIGHT, "AIM_RIGHT", _s("Aim right"), "JOY_RIGHT_STICK_X+", nullptr },
++			{ ACTION_AIM_UP, "AIM_UP", _s("Aim up"), "JOY_RIGHT_STICK_Y-", nullptr },
++			{ ACTION_AIM_DOWN, "AIM_DOWN", _s("Aim down"), "JOY_RIGHT_STICK_Y+", nullptr },
++			{ ACTION_NONE, nullptr, nullptr, nullptr, nullptr }
++		};
++		for (const KeybindingRecord *r = aimKeys; r->_id; ++r) {
++			act = new Common::Action(r->_id, _(r->_desc));
++			act->setCustomBackendActionAxisEvent(r->_action);
++			act->addDefaultInputMapping(r->_input1);
++			keyMap->addAction(act);
++		}
++	}
++
+ 	// Game specific keymaps
+ 	const KeybindingRecord *game_keys = (gameId.equals("ultima8") ? U8_KEYS : CRUSADER_KEYS);
+ 	for (const KeybindingRecord *r = game_keys; r->_id; ++r) {
+ 		act = new Common::Action(r->_id, _(r->_desc));
+ 		act->setCustomEngineActionEvent(r->_action);
+-		if (r->_input1)
+-			act->addDefaultInputMapping(r->_input1);
+-		if (r->_input2)
+-			act->addDefaultInputMapping(r->_input2);
++		addDefaultInputs(act, r, modern);
+ 		keyMap->addAction(act);
+ 	}
+ 
+diff --git a/engines/ultima/ultima8/metaengine.h b/engines/ultima/ultima8/metaengine.h
+index a827d413..ee5d0d26 100644
+--- a/engines/ultima/ultima8/metaengine.h
++++ b/engines/ultima/ultima8/metaengine.h
+@@ -48,6 +48,8 @@ enum KeybindingAction {
+ 
+ 	ACTION_TOGGLE_PAINT, ACTION_FRAME_BY_FRAME,
+ 	ACTION_ADVANCE_FRAME, ACTION_TOGGLE_STASIS, ACTION_SHAPE_VIEWER,
++	ACTION_STICK_LEFT, ACTION_STICK_RIGHT, ACTION_STICK_UP, ACTION_STICK_DOWN,
++	ACTION_AIM_LEFT, ACTION_AIM_RIGHT, ACTION_AIM_UP, ACTION_AIM_DOWN,
+ 
+ 	ACTION_NONE
+ };
+@@ -57,7 +59,7 @@ public:
+ 	/**
+ 	 * Initialize keymaps
+ 	 */
+-	static Common::KeymapArray initKeymaps(const Common::String &gameId);
++	static Common::KeymapArray initKeymaps(const Common::String &gameId, bool modern = false, bool twinStick = false);
+ 
+ 	/**
+ 	 * Return meta information from the specified save state for saves that do not have ExtendedSavegameHeader
+diff --git a/engines/ultima/ultima8/ultima8.cpp b/engines/ultima/ultima8/ultima8.cpp
+index 8d6056e5..63649672 100644
+--- a/engines/ultima/ultima8/ultima8.cpp
++++ b/engines/ultima/ultima8/ultima8.cpp
+@@ -585,6 +585,12 @@ Common::Error Ultima8Engine::startupGame() {
+ 	// Position interpolation looks nice on U8, but causes Crusader to look janky.
+ 	ConfMan.registerDefault("interpolate", _gameInfo->_type == GameInfo::GAME_U8);
+ 	ConfMan.registerDefault("cheat", false);
++	ConfMan.registerDefault("crusader_modern_controls", false);
++	ConfMan.registerDefault("crusader_twin_stick", false);
++	ConfMan.registerDefault("crusader_aim_deadzone", 15);
++	ConfMan.registerDefault("crusader_stick_deadzone", 15);
++	ConfMan.registerDefault("crusader_walk_threshold", 45);
++	ConfMan.registerDefault("crusader_stick_hysteresis", 5);
+ 
+ 	bool loaded = _game->loadFiles();
+ 	if (!loaded)
+@@ -864,6 +870,17 @@ void Ultima8Engine::handleEvent(const Common::Event &event) {
+ 	case Common::EVENT_CUSTOM_ENGINE_ACTION_END:
+ 		handleActionUp((KeybindingAction)event.customType);
+ 		break;
++	case Common::EVENT_CUSTOM_BACKEND_ACTION_AXIS: {
++		CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(_avatarMoverProcess);
++		if (!modal && !isAvatarInStasis() && mover &&
++			mover->onAxisAction((KeybindingAction)event.customType, event.joystick.position))
++			moveKeyEvent();
++		break;
++	}
++	case Common::EVENT_FOCUS_LOST:
++	case Common::EVENT_INPUT_CHANGED:
++		_avatarMoverProcess->resetMovementFlags();
++		break;
+ 
+ 	case Common::EVENT_QUIT:
+ 	case Common::EVENT_RETURN_TO_LAUNCHER:
+diff --git a/engines/ultima/ultima8/world/actors/actor_anim_process.cpp b/engines/ultima/ultima8/world/actors/actor_anim_process.cpp
+index 8a40de07..9c4cea1f 100644
+--- a/engines/ultima/ultima8/world/actors/actor_anim_process.cpp
++++ b/engines/ultima/ultima8/world/actors/actor_anim_process.cpp
+@@ -32,6 +32,7 @@
+ #include "ultima/ultima8/world/actors/auto_firer_process.h"
+ #include "ultima/ultima8/world/actors/combat_process.h"
+ #include "ultima/ultima8/world/actors/main_actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/world/create_item_process.h"
+ #include "ultima/ultima8/world/current_map.h"
+ #include "ultima/ultima8/world/destroy_item_process.h"
+@@ -171,6 +172,13 @@ void ActorAnimProcess::run() {
+ 
+ 	_firstFrame = false;
+ 
++	if (GAME_IS_REMORSE && _itemNum == kMainActorId) {
++		const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
++			Ultima8Engine::get_instance()->getAvatarMoverProcess());
++		if (mover && mover->isTwinStickLocomotion(getPid()))
++			_tracker->setInPlaceMode();
++	}
++
+ 	if (!a->hasFlags(Item::FLG_FASTAREA)) {
+ 		// not in the fast area? Kill the animation then.
+ 		//! TODO: Decide if this is the right move.
+diff --git a/engines/ultima/ultima8/world/actors/animation_tracker.cpp b/engines/ultima/ultima8/world/actors/animation_tracker.cpp
+index 21f813e6..45bef45c 100644
+--- a/engines/ultima/ultima8/world/actors/animation_tracker.cpp
++++ b/engines/ultima/ultima8/world/actors/animation_tracker.cpp
+@@ -206,6 +206,10 @@ bool AnimationTracker::step() {
+ 	int32 dx = 4 * Direction_XFactor(movedir) * f._deltaDir;
+ 	int32 dy = 4 * Direction_YFactor(movedir) * f._deltaDir;
+ 	int32 dz = f._deltaZ;
++	if (_mode == InPlaceMode) {
++		dx = 0;
++		dy = 0;
++	}
+ 
+ 	if (_mode == TargetMode && !f.is_onground()) {
+ 		dx += _targetDx / _targetOffGroundLeft;
+diff --git a/engines/ultima/ultima8/world/actors/animation_tracker.h b/engines/ultima/ultima8/world/actors/animation_tracker.h
+index 004df2dc..a57b64c0 100644
+--- a/engines/ultima/ultima8/world/actors/animation_tracker.h
++++ b/engines/ultima/ultima8/world/actors/animation_tracker.h
+@@ -89,6 +89,7 @@ public:
+ 	const AnimFrame *getAnimFrame() const;
+ 
+ 	void setTargetedMode(const Point3 &pt);
++	void setInPlaceMode() { _mode = InPlaceMode; }
+ 
+ 	bool isDone() const {
+ 		return _done;
+@@ -109,7 +110,8 @@ public:
+ private:
+ 	enum Mode {
+ 		NormalMode = 0,
+-		TargetMode
++		TargetMode,
++		InPlaceMode
+ 	};
+ 
+ 	unsigned int getNextFrame(unsigned int frame) const;
+diff --git a/engines/ultima/ultima8/world/actors/avatar_mover_process.h b/engines/ultima/ultima8/world/actors/avatar_mover_process.h
+index 432ae86e..ecff0394 100644
+--- a/engines/ultima/ultima8/world/actors/avatar_mover_process.h
++++ b/engines/ultima/ultima8/world/actors/avatar_mover_process.h
+@@ -56,7 +56,7 @@ public:
+ 	virtual void clearMovementFlag(uint32 mask) {
+ 		_movementFlags &= ~mask;
+ 	}
+-	void resetMovementFlags() {
++	virtual void resetMovementFlags() {
+ 		_movementFlags = 0;
+ 	}
+ 	void onMouseDown(int button, int32 mx, int32 my);
+diff --git a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp
+index c4d259c8..473ec3c7 100644
+--- a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp
++++ b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp
+@@ -24,11 +24,13 @@
+ #include "ultima/ultima8/world/actors/main_actor.h"
+ #include "ultima/ultima8/kernel/kernel.h"
+ #include "ultima/ultima8/world/actors/actor_anim_process.h"
++#include "ultima/ultima8/world/actors/cru_twin_stick_math.h"
+ #include "ultima/ultima8/world/get_object.h"
+ #include "ultima/ultima8/world/current_map.h"
+ #include "ultima/ultima8/world/world.h"
+ #include "ultima/ultima8/misc/direction_util.h"
+ #include "ultima/ultima8/audio/audio_process.h"
++#include "common/config-manager.h"
+ 
+ namespace Ultima {
+ namespace Ultima8 {
+@@ -38,7 +40,13 @@ DEFINE_RUNTIME_CLASSTYPE_CODE(CruAvatarMoverProcess)
+ static const int REBEL_BASE_MAP = 40;
+ 
+ CruAvatarMoverProcess::CruAvatarMoverProcess() : AvatarMoverProcess(),
+-_avatarAngle(-1), _SGA1Loaded(false), _nextFireTick(0), _lastNPCAlertTick(0) {
++_avatarAngle(-1), _SGA1Loaded(false), _nextFireTick(0), _lastNPCAlertTick(0),
++_modernControls(GAME_IS_REMORSE && ConfMan.getBool("crusader_modern_controls")),
++_twinStickControls(_modernControls && ConfMan.getBool("crusader_twin_stick")),
++_stick(ConfMan.getInt("crusader_stick_deadzone"), _twinStickControls ? 100 : ConfMan.getInt("crusader_walk_threshold"),
++	ConfMan.getInt("crusader_stick_hysteresis"), !_twinStickControls),
++_aimStick(ConfMan.getInt("crusader_aim_deadzone"), 100, ConfMan.getInt("crusader_stick_hysteresis"), false),
++_modernWasActive(false), _modernAnimation(0), _modernActor(0) {
+ }
+ 
+ 
+@@ -51,6 +59,8 @@ static bool _isAnimRunningWalking(Animation::Sequence anim) {
+ }
+ 
+ void CruAvatarMoverProcess::run() {
++	if (_modernControls && (_twinStickControls ? handleTwinStickMovement() : handleModernMovement()))
++		return;
+ 
+ 	// Even when we are not doing anything (because we're waiting for an anim)
+ 	// we check if the combat angle needs updating - this keeps it smooth.
+@@ -117,6 +127,273 @@ void CruAvatarMoverProcess::run() {
+ 	AvatarMoverProcess::run();
+ }
+ 
++bool CruAvatarMoverProcess::onAxisAction(KeybindingAction action, int16 position) {
++	if (!_modernControls)
++		return false;
++	CruStickInput::HalfAxis axis;
++	bool aim = false;
++	switch (action) {
++	case ACTION_STICK_LEFT: axis = CruStickInput::LEFT; break;
++	case ACTION_STICK_RIGHT: axis = CruStickInput::RIGHT; break;
++	case ACTION_STICK_UP: axis = CruStickInput::UP; break;
++	case ACTION_STICK_DOWN: axis = CruStickInput::DOWN; break;
++	case ACTION_AIM_LEFT: axis = CruStickInput::LEFT; aim = true; break;
++	case ACTION_AIM_RIGHT: axis = CruStickInput::RIGHT; aim = true; break;
++	case ACTION_AIM_UP: axis = CruStickInput::UP; aim = true; break;
++	case ACTION_AIM_DOWN: axis = CruStickInput::DOWN; aim = true; break;
++	default: return false;
++	}
++	if (aim && !_twinStickControls)
++		return false;
++	(aim ? _aimStick : _stick).update(axis, position == -32768 ? 32767 : position);
++	return true;
++}
++
++void CruAvatarMoverProcess::stopModernAnimation() {
++	Process *process = Kernel::get_instance()->getProcess(_modernAnimation);
++	ActorAnimProcess *animation = dynamic_cast<ActorAnimProcess *>(process);
++	if (animation && !animation->is_terminated() && animation->getItemNum() == _modernActor &&
++		(animation->getAction() == Animation::walk || animation->getAction() == Animation::run ||
++		 animation->getAction() == Animation::advance || animation->getAction() == Animation::kneelingAdvance ||
++		 animation->getAction() == Animation::retreat || animation->getAction() == Animation::kneelingRetreat ||
++		 animation->getAction() == Animation::slideLeft || animation->getAction() == Animation::slideRight ||
++		 animation->getAction() == Animation::combatRunSmallWeapon)) {
++		animation->terminate();
++	}
++	_modernAnimation = 0;
++}
++
++void CruAvatarMoverProcess::resetMovementFlags() {
++	AvatarMoverProcess::resetMovementFlags();
++	resetStick();
++}
++
++void CruAvatarMoverProcess::resetStick() {
++	_stick.reset();
++	_aimStick.reset();
++	_modernWasActive = false;
++	if (_modernAnimation)
++		stopModernAnimation();
++}
++
++bool CruAvatarMoverProcess::handleModernMovement() {
++	Actor *avatar = getControlledActor();
++	if (!avatar || avatar != getMainActor() || avatar->isDead() ||
++		Ultima8Engine::get_instance()->isAvatarInStasis() || avatar->getGravityPID() ||
++		!avatar->hasFlags(Item::FLG_FASTAREA)) {
++		resetStick();
++		return false;
++	}
++	if (_modernActor && _modernActor != avatar->getObjId()) {
++		resetStick();
++		return false;
++	}
++	if (!_stick.isActive() && !_modernWasActive)
++		return false;
++
++	_modernActor = avatar->getObjId();
++	Direction direction = _stick.isActive() ?
++		Direction_Get(-_stick.getY(), _stick.getX(), dirmode_8dirs) : avatar->getDir();
++	Process *animation = Kernel::get_instance()->getProcess(_modernAnimation);
++	if (!animation || animation->is_terminated())
++		_modernAnimation = 0;
++	if (_modernAnimation && (!_stick.isWalking() || direction != avatar->getDir()))
++		stopModernAnimation();
++	if (avatar->isBusy())
++		return true;
++
++	bool turned = direction != avatar->getDir();
++	avatar->setDir(direction);
++	_avatarAngle = avatar->isInCombat() ? Direction_ToCentidegrees(direction) : -1;
++	_modernWasActive = _stick.isActive();
++	if (checkOneShotMove(direction))
++		return true;
++	if (hasMovementFlags(MOVE_ATTACKING)) {
++		tryAttack();
++		if (avatar->isBusy())
++			return true;
++	}
++
++	if (_stick.isWalking()) {
++		Animation::Sequence action = Animation::walk;
++		if (avatar->isKneeling())
++			action = Animation::kneelingAdvance;
++		else if (hasMovementFlags(MOVE_RUN))
++			action = Animation::run;
++		else if (avatar->isInCombat())
++			action = Animation::advance;
++		_modernAnimation = step(action, direction);
++	} else {
++		Animation::Sequence idle = avatar->isKneeling() ? Animation::kneel :
++			(avatar->isInCombat() ? Animation::combatStand : Animation::stand);
++		if (turned || avatar->getLastAnim() != idle) {
++			avatar->setLastAnim(idle);
++			avatar->setToStartOfAnim(idle);
++		}
++	}
++	return true;
++}
++
++bool CruAvatarMoverProcess::moveTwinStickActor(Actor *avatar) {
++	int32 dx, dy;
++	int speed = avatar->isKneeling() ? 2 : hasMovementFlags(MOVE_RUN) ? 8 : 4;
++	CruTwinStickMath::movement(_stick.getX(), _stick.getY(), speed, dx, dy);
++	Point3 start = avatar->getLocation();
++	Box startBox = avatar->getWorldBox();
++	CurrentMap *map = World::get_instance()->getCurrentMap();
++	uint32 flags = avatar->getShapeInfo()->_flags;
++	Direction direction = Direction_GetWorldDir(dy, dx, dirmode_8dirs);
++	for (int attempt = 0; attempt < 3; ++attempt) {
++		Point3 end(start.x + (attempt == 2 ? 0 : dx), start.y + (attempt == 1 ? 0 : dy), start.z);
++		if (end == start)
++			continue;
++		Box endBox(end.x, end.y, end.z, startBox._xd, startBox._yd, startBox._zd);
++		PositionInfo info = map->getPositionInfo(endBox, startBox, flags, avatar->getObjId());
++		if (!info.valid || !info.supported) {
++			bool adjusted = map->scanForValidPosition(end.x, end.y, end.z, avatar, direction,
++				true, end.x, end.y, end.z);
++			if (!adjusted && !info.valid)
++				continue;
++		}
++		// Clear the edge before descending; a diagonal sweep hits the floor
++		// being stepped off. Raise first when stepping onto a higher surface.
++		if (end.z > start.z)
++			avatar->collideMove(start.x, start.y, end.z, false, false);
++		Point3 raised = avatar->getLocation();
++		avatar->collideMove(end.x, end.y, raised.z, false, false);
++		Point3 moved = avatar->getLocation();
++		if (moved.x == end.x && moved.y == end.y && moved.z != end.z)
++			avatar->collideMove(end.x, end.y, end.z, false, false);
++		if (avatar->getLocation() != start) {
++			PositionInfo support = map->getPositionInfo(avatar->getWorldBox(), startBox, flags, avatar->getObjId());
++			if (!support.supported)
++				avatar->fall();
++			return true;
++		}
++	}
++	return false;
++}
++
++int32 CruAvatarMoverProcess::getTwinStickAimAngle() const {
++	Actor *avatar = getControlledActor();
++	return _aimStick.isActive() ? CruTwinStickMath::aimAngle(_aimStick.getX(), _aimStick.getY()) :
++		_stick.isActive() ? CruTwinStickMath::aimAngle(_stick.getX(), _stick.getY()) :
++		_avatarAngle >= 0 ? _avatarAngle : Direction_ToCentidegrees(avatar->getDir());
++}
++
++Item *CruAvatarMoverProcess::getTwinStickTarget() const {
++	Actor *avatar = getControlledActor();
++	if (!_twinStickControls || !avatar || avatar != getMainActor())
++		return nullptr;
++	Point3 pt = avatar->getLocation();
++	Direction dir = static_cast<Direction>(CruTwinStickMath::bodyDirection(getTwinStickAimAngle(), false));
++	return World::get_instance()->getCurrentMap()->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
++}
++
++bool CruAvatarMoverProcess::getTwinStickAimPoint(const Point3 &from, Point3 &to) const {
++	Actor *avatar = getControlledActor();
++	if (!_twinStickControls || !avatar || avatar != getMainActor())
++		return false;
++	int32 angle = getTwinStickAimAngle();
++	double radians = Math::deg2rad(angle / 100.0);
++	to = Point3(from.x + static_cast<int32>(400 * sin(radians)),
++		from.y - static_cast<int32>(400 * cos(radians)), from.z);
++	return true;
++}
++
++bool CruAvatarMoverProcess::handleTwinStickMovement() {
++	Actor *avatar = getControlledActor();
++	if (!avatar || avatar != getMainActor() || avatar->isDead() ||
++		Ultima8Engine::get_instance()->isAvatarInStasis() ||
++		!avatar->hasFlags(Item::FLG_FASTAREA)) {
++		resetStick();
++		return false;
++	}
++	if (avatar->getGravityPID()) {
++		if (_modernAnimation)
++			stopModernAnimation();
++		return false;
++	}
++	bool moving = _stick.isActive();
++	bool aiming = _aimStick.isActive();
++	if (!moving && !aiming && !_modernWasActive && hasMovementFlags(
++		MOVE_FORWARD | MOVE_BACK | MOVE_TURN_LEFT | MOVE_TURN_RIGHT | MOVE_UP | MOVE_DOWN | MOVE_LEFT | MOVE_RIGHT))
++		return false;
++	_modernActor = avatar->getObjId();
++	Kernel *kernel = Kernel::get_instance();
++	ActorAnimProcess *owned = dynamic_cast<ActorAnimProcess *>(kernel->getProcess(_modernAnimation));
++	if (!owned || owned->is_terminated()) {
++		_modernAnimation = 0;
++		owned = nullptr;
++	}
++	ActorAnimProcess *running = dynamic_cast<ActorAnimProcess *>(kernel->findProcess(
++		avatar->getObjId(), ActorAnimProcess::ACTOR_ANIM_PROC_TYPE));
++	if (running && !owned && running->getAction() != Animation::attack &&
++		running->getAction() != Animation::kneelAndFire && running->getAction() != Animation::reloadSmallWeapon)
++		return true;
++	int32 angle = getTwinStickAimAngle();
++	Direction aimDirection = static_cast<Direction>(CruTwinStickMath::bodyDirection(angle, false));
++	if ((aiming || hasMovementFlags(MOVE_ATTACKING)) && !avatar->isInCombat())
++		avatar->setInCombat(0);
++	_avatarAngle = avatar->isInCombat() ? angle : -1;
++	Animation::Sequence pose = avatar->isInCombat() ? Animation::advance : Animation::walk;
++	if (avatar->isKneeling()) {
++		pose = Animation::kneelingAdvance;
++	} else if (hasMovementFlags(MOVE_RUN)) {
++		pose = avatar->isInCombat() ? Animation::combatRunSmallWeapon : Animation::run;
++	} else if (aiming && moving) {
++		int32 moveAngle = CruTwinStickMath::aimAngle(_stick.getX(), _stick.getY());
++		int relative = (CruTwinStickMath::bodyDirection(moveAngle, false) - aimDirection + 16) % 16;
++		if (relative >= 6 && relative <= 10)
++			pose = Animation::retreat;
++		else if (relative >= 3 && relative <= 5)
++			pose = Animation::slideRight;
++		else if (relative >= 11 && relative <= 13)
++			pose = Animation::slideLeft;
++	}
++	Animation::Sequence idle = avatar->isKneeling() ? Animation::kneel :
++		avatar->isInCombat() ? Animation::combatStand : Animation::stand;
++	Direction facing = static_cast<Direction>(CruTwinStickMath::bodyDirection(angle,
++		avatar->animDirMode(moving ? pose : idle) == dirmode_8dirs));
++	bool oneShot = hasMovementFlags(MOVE_ROLL_LEFT | MOVE_ROLL_RIGHT | MOVE_STEP_LEFT | MOVE_STEP_RIGHT |
++		MOVE_STEP_FORWARD | MOVE_STEP_BACK | MOVE_SHORT_JUMP | MOVE_TOGGLE_CROUCH);
++	bool fire = hasMovementFlags(MOVE_ATTACKING) && kernel->getTickNum() >= _nextFireTick;
++	if (owned && (!moving || owned->getAction() != pose || facing != avatar->getDir() || oneShot || fire)) {
++		stopModernAnimation();
++		owned = nullptr;
++	}
++	ActorAnimProcess *busy = dynamic_cast<ActorAnimProcess *>(kernel->findProcess(
++		avatar->getObjId(), ActorAnimProcess::ACTOR_ANIM_PROC_TYPE));
++	bool firing = busy && (busy->getAction() == Animation::attack || busy->getAction() == Animation::kneelAndFire ||
++		busy->getAction() == Animation::reloadSmallWeapon);
++	if (busy && !owned && !firing)
++		return true;
++	_modernWasActive = moving || aiming;
++	if (moving)
++		moveTwinStickActor(avatar);
++	if (avatar->getGravityPID())
++		return true;
++	if (busy)
++		return true;
++	bool turned = avatar->getDir() != facing;
++	avatar->setDir(facing);
++	if (checkOneShotMove(facing))
++		return true;
++	if (hasMovementFlags(MOVE_ATTACKING)) {
++		avatar->setDir(aimDirection);
++		tryAttack(false);
++		if (avatar->isBusy())
++			return true;
++	}
++	if (moving) {
++		_modernAnimation = avatar->doAnim(pose, facing);
++	} else if (avatar->getLastAnim() != idle || turned) {
++		avatar->setLastAnim(idle);
++		avatar->setToStartOfAnim(idle);
++	}
++	return true;
++}
++
+ void CruAvatarMoverProcess::clearMovementFlag(uint32 mask) {
+ 	// Set a pending turn if we haven't already cleared the turn
+ 	if ((mask & MOVE_TURN_LEFT) && hasMovementFlags(MOVE_TURN_LEFT))
+@@ -471,7 +748,7 @@ void CruAvatarMoverProcess::handleNormalMode() {
+ 	_idleTime = currentIdleTime + 1;
+ }
+ 
+-void CruAvatarMoverProcess::step(Animation::Sequence action, Direction direction,
++ProcId CruAvatarMoverProcess::step(Animation::Sequence action, Direction direction,
+ 							  bool adjusted) {
+ 	Actor *avatar = getControlledActor();
+ 
+@@ -558,13 +835,13 @@ void CruAvatarMoverProcess::step(Animation::Sequence action, Direction direction
+ 	bool moving = _isAnimRunningWalking(action);
+ 
+ 	if (checkTurn(direction, moving))
+-		return;
++		return 0;
+ 
+ 	//debug(6, "Cru avatar step: picked action %d dir %d (test result %d)", action, direction, res);
+-	avatar->doAnim(action, direction);
++	return avatar->doAnim(action, direction);
+ }
+ 
+-void CruAvatarMoverProcess::tryAttack() {
++void CruAvatarMoverProcess::tryAttack(bool waitForAnimation) {
+ 	// Don't do it while this process is waiting
+ 	if (is_suspended())
+ 		return;
+@@ -663,7 +940,7 @@ void CruAvatarMoverProcess::tryAttack() {
+ 
+ 			if (wpninfo->_shotDelay) {
+ 				_nextFireTick = kernel->getTickNum() + wpninfo->_shotDelay;
+-			} else {
++			} else if (waitForAnimation) {
+ 				waitFor(fireanimpid);
+ 			}
+ 		}
+diff --git a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h
+index 8f97d884..896574be 100644
+--- a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h
++++ b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h
+@@ -23,11 +23,16 @@
+ #define WORLD_ACTORS_CRUAVATARMOVERPROCESS_H
+ 
+ #include "ultima/ultima8/world/actors/avatar_mover_process.h"
++#include "ultima/ultima8/world/actors/cru_stick_input.h"
+ #include "ultima/ultima8/world/actors/animation.h"
+ 
+ namespace Ultima {
+ namespace Ultima8 {
+ 
++class Actor;
++class Item;
++struct Point3;
++
+ /**
+  * Mover process that replicates the feel of Crusader - moving, combat, jumps, etc.
+  * Tries sliding left and right if movement is blocked.  Walking cancels combat.
+@@ -50,10 +55,18 @@ public:
+ 	}
+ 
+ 	void clearMovementFlag(uint32 mask) override;
++	void resetMovementFlags() override;
++	bool onAxisAction(KeybindingAction action, int16 position);
++	bool isTwinStickLocomotion(ProcId pid) const {
++		return _twinStickControls && pid && pid == _modernAnimation;
++	}
++	bool isTwinStickEnabled() const { return _twinStickControls; }
++	bool getTwinStickAimPoint(const Point3 &from, Point3 &to) const;
++	Item *getTwinStickTarget() const;
+ 
+ private:
+ 	/** Try readying or firing weapon. */
+-	void tryAttack();
++	void tryAttack(bool waitForAnimation = true);
+ 
+ 	/** Check if we need to alert NPCs after firing. */
+ 	void checkForAlertingNPCs();
+@@ -80,12 +93,26 @@ private:
+ 	 * Last time we alerted NPCs on a shot.
+ 	 */
+ 	uint32 _lastNPCAlertTick;
++	bool _modernControls;
++	bool _twinStickControls;
++	CruStickInput _stick;
++	CruStickInput _aimStick;
++	bool _modernWasActive;
++	ProcId _modernAnimation;
++	ObjId _modernActor;
++
++	bool handleModernMovement();
++	void stopModernAnimation();
++	void resetStick();
++	bool handleTwinStickMovement();
++	bool moveTwinStickActor(Actor *avatar);
++	int32 getTwinStickAimAngle() const;
+ 
+ 	void handleHangingMode() override;
+ 	void handleCombatMode() override;
+ 	void handleNormalMode() override;
+ 
+-	void step(Animation::Sequence action, Direction direction, bool adjusted = false);
++	ProcId step(Animation::Sequence action, Direction direction, bool adjusted = false);
+ 
+ 	bool checkOneShotMove(Direction direction);
+ };
+diff --git a/engines/ultima/ultima8/world/item.cpp b/engines/ultima/ultima8/world/item.cpp
+index 837c433c..54803c54 100644
+--- a/engines/ultima/ultima8/world/item.cpp
++++ b/engines/ultima/ultima8/world/item.cpp
+@@ -57,6 +57,7 @@
+ #include "ultima/ultima8/world/super_sprite_process.h"
+ #include "ultima/ultima8/audio/audio_process.h"
+ #include "ultima/ultima8/world/actors/main_actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/world/actors/attack_process.h"
+ #include "ultima/ultima8/world/missile_tracker.h"
+ #include "ultima/ultima8/world/crosshair_process.h"
+@@ -1314,8 +1315,17 @@ uint16 Item::fireWeapon(int32 x, int32 y, int32 z, Direction dir, int firetype,
+ 		}
+ 	}
+ 
++	const CruAvatarMoverProcess *twinMover = nullptr;
++	if (this == getControlledActor() && getObjId() == kMainActorId) {
++		const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
++			Ultima8Engine::get_instance()->getAvatarMoverProcess());
++		if (mover && mover->isTwinStickEnabled())
++			twinMover = mover;
++	}
+ 	if (findtarget) {
+-		if (this != getControlledActor()) {
++		if (twinMover) {
++			target = twinMover->getTwinStickTarget();
++		} else if (this != getControlledActor()) {
+ 			if (GAME_IS_REMORSE || !thisactor)
+ 				target = getControlledActor();
+ 			// else already set above to attackproc target
+@@ -1346,6 +1356,8 @@ uint16 Item::fireWeapon(int32 x, int32 y, int32 z, Direction dir, int firetype,
+ 			// Shoot toward the target
+ 			ss = t;
+ 			findtarget = true;
++		} else if (twinMover && twinMover->getTwinStickAimPoint(pt, ss)) {
++			// Read current stick aim rather than the previous crosshair frame.
+ 		} else if (this == getControlledActor() && crosshair) {
+ 			// Shoot toward the crosshair
+ 			ss = crosshair->getLocation();
+diff --git a/engines/ultima/ultima8/world/target_reticle_process.cpp b/engines/ultima/ultima8/world/target_reticle_process.cpp
+index cb43cdc7..1e88bdbb 100644
+--- a/engines/ultima/ultima8/world/target_reticle_process.cpp
++++ b/engines/ultima/ultima8/world/target_reticle_process.cpp
+@@ -25,6 +25,7 @@
+ #include "ultima/ultima8/games/game_data.h"
+ #include "ultima/ultima8/kernel/kernel.h"
+ #include "ultima/ultima8/world/actors/actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/world/target_reticle_process.h"
+ #include "ultima/ultima8/world/sprite_process.h"
+ #include "ultima/ultima8/world/world.h"
+@@ -38,6 +39,13 @@ TargetReticleProcess *TargetReticleProcess::_instance = nullptr;
+ 
+ DEFINE_RUNTIME_CLASSTYPE_CODE(TargetReticleProcess)
+ 
++static const CruAvatarMoverProcess *getTwinStickMover() {
++	Actor *actor = getControlledActor();
++	const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
++		Ultima8Engine::get_instance()->getAvatarMoverProcess());
++	return mover && mover->isTwinStickEnabled() && actor && actor->getObjId() == kMainActorId ? mover : nullptr;
++}
++
+ TargetReticleProcess::TargetReticleProcess() : Process(), _reticleEnabled(true),
+ 		_lastUpdate(0), _reticleSpriteProcess(0), _lastTargetDir(dir_current), _lastTargetItem(0),
+ 		_reticleStyle(0) {
+@@ -79,7 +87,7 @@ void TargetReticleProcess::run() {
+ 			putTargetReticleOnItem(target, true);
+ 	}
+ 
+-	if (frameno - _lastUpdate < 2 * Kernel::FRAMES_PER_SECOND) {
++	if (!getTwinStickMover() && frameno - _lastUpdate < 2 * Kernel::FRAMES_PER_SECOND) {
+ 		return;
+ 	}
+ 
+@@ -103,7 +111,9 @@ bool TargetReticleProcess::findTargetItem() {
+ 
+ 	Point3 pt = mainactor->getLocation();
+ 
+-	Item *item = currentmap->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
++	const CruAvatarMoverProcess *mover = getTwinStickMover();
++	Item *item = mover ? mover->getTwinStickTarget() :
++		currentmap->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
+ 
+ 	if (item && item->getObjId() != _lastTargetItem) {
+ 		Item *lastItem = getItem(_lastTargetItem);
+@@ -171,7 +181,9 @@ void TargetReticleProcess::itemMoved(Item *item) {
+ 	SpriteProcess *spriteproc = dynamic_cast<SpriteProcess *>(Kernel::get_instance()->getProcess(_reticleSpriteProcess));
+ 
+ 	if (spriteproc) {
+-		if (actordir != _lastTargetDir || dirtoitem != _lastTargetDir) {
++		const CruAvatarMoverProcess *mover = getTwinStickMover();
++		if (mover ? mover->getTwinStickTarget() != item :
++			actordir != _lastTargetDir || dirtoitem != _lastTargetDir) {
+ 			spriteproc->terminate();
+ 			_reticleSpriteProcess = 0;
+ 			clearSprite();
+diff --git a/engines/ultima/ultima8/world/actors/cru_stick_input.h b/engines/ultima/ultima8/world/actors/cru_stick_input.h
+new file mode 100644
+index 00000000..3df2ea57
+--- /dev/null
++++ b/engines/ultima/ultima8/world/actors/cru_stick_input.h
+@@ -0,0 +1,84 @@
++/* ScummVM - Graphic Adventure Engine
++ *
++ * ScummVM is the legal property of its developers, whose names
++ * are too numerous to list here. Please refer to the COPYRIGHT
++ * file distributed with this source distribution.
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef ULTIMA8_WORLD_ACTORS_CRU_STICK_INPUT_H
++#define ULTIMA8_WORLD_ACTORS_CRU_STICK_INPUT_H
++
++#include "common/scummsys.h"
++#include "common/util.h"
++
++namespace Ultima {
++namespace Ultima8 {
++
++class CruStickInput {
++public:
++	enum HalfAxis { LEFT, RIGHT, UP, DOWN };
++
++	CruStickInput(int deadzone = 15, int walkThreshold = 45, int hysteresis = 5, bool walkingZone = true) {
++		_walkingZone = walkingZone;
++		_deadzone = CLIP(deadzone, 1, 98);
++		_walkThreshold = CLIP(walkThreshold, _deadzone + 1, 100);
++		int maxHysteresis = walkingZone ? MIN(_deadzone - 1, _walkThreshold - _deadzone - 1) : _deadzone - 1;
++		_hysteresis = CLIP(hysteresis, 0, maxHysteresis);
++		reset();
++	}
++
++	void reset() {
++		for (int &axis : _axes)
++			axis = 0;
++		_active = false;
++		_walking = false;
++	}
++
++	void update(HalfAxis axis, int position) {
++		_axes[axis] = CLIP(position, 0, 32767);
++		if (_axes[axis] > 0)
++			_axes[axis ^ 1] = 0;
++		int64 x = getX();
++		int64 y = getY();
++		int64 radiusSquared = x * x + y * y;
++		_active = aboveThreshold(radiusSquared, _deadzone - (_active ? _hysteresis : 0));
++		_walking = _walkingZone && _active && aboveThreshold(radiusSquared, _walkThreshold - (_walking ? _hysteresis : 0));
++	}
++
++	int getX() const { return _axes[RIGHT] - _axes[LEFT]; }
++	int getY() const { return _axes[DOWN] - _axes[UP]; }
++	bool isActive() const { return _active; }
++	bool isWalking() const { return _walking; }
++
++private:
++	static bool aboveThreshold(int64 radiusSquared, int percent) {
++		int64 threshold = 32767 * percent / 100;
++		return radiusSquared >= threshold * threshold;
++	}
++
++	int _axes[4];
++	int _deadzone;
++	int _walkThreshold;
++	int _hysteresis;
++	bool _active;
++	bool _walking;
++	bool _walkingZone;
++};
++
++} // End of namespace Ultima8
++} // End of namespace Ultima
++
++#endif
+diff --git a/engines/ultima/ultima8/world/actors/cru_twin_stick_math.h b/engines/ultima/ultima8/world/actors/cru_twin_stick_math.h
+new file mode 100644
+index 00000000..728fb10b
+--- /dev/null
++++ b/engines/ultima/ultima8/world/actors/cru_twin_stick_math.h
+@@ -0,0 +1,65 @@
++/* ScummVM - Graphic Adventure Engine
++ *
++ * ScummVM is the legal property of its developers, whose names
++ * are too numerous to list here. Please refer to the COPYRIGHT
++ * file distributed with this source distribution.
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef ULTIMA8_WORLD_ACTORS_CRU_TWIN_STICK_MATH_H
++#define ULTIMA8_WORLD_ACTORS_CRU_TWIN_STICK_MATH_H
++
++#include "common/scummsys.h"
++#include "math/utils.h"
++
++namespace Ultima {
++namespace Ultima8 {
++
++class CruTwinStickMath {
++public:
++	static void movement(int x, int y, int speed, int32 &dx, int32 &dy) {
++		double length = sqrt(static_cast<double>(x) * x + static_cast<double>(y) * y);
++		if (!length) {
++			dx = dy = 0;
++			return;
++		}
++		double worldX = (x + 2.0 * y) / length * speed;
++		double worldY = (-x + 2.0 * y) / length * speed;
++		dx = static_cast<int32>(worldX + (worldX >= 0 ? 0.5 : -0.5));
++		dy = static_cast<int32>(worldY + (worldY >= 0 ? 0.5 : -0.5));
++	}
++
++	static int32 aimAngle(int x, int y) {
++		// Invert screen x=(worldX-worldY)/4, y=(worldX+worldY)/8.
++		double worldX = x + 2.0 * y;
++		double worldY = -x + 2.0 * y;
++		if (!x && !y)
++			return 0;
++		double angle = Math::rad2deg(atan2(worldX, -worldY));
++		if (angle < 0)
++			angle += 360;
++		return static_cast<int32>(angle * 100 + 0.5) % 36000;
++	}
++
++	static int bodyDirection(int32 angle, bool eightDirections) {
++		return eightDirections ? ((angle + 2250) / 4500 * 2) % 16 :
++			((angle + 1125) / 2250) % 16;
++	}
++};
++
++} // End of namespace Ultima8
++} // End of namespace Ultima
++
++#endif
+diff --git a/test/engines/ultima/ultima8/world/cru_stick_input.h b/test/engines/ultima/ultima8/world/cru_stick_input.h
+new file mode 100644
+index 00000000..4885b440
+--- /dev/null
++++ b/test/engines/ultima/ultima8/world/cru_stick_input.h
+@@ -0,0 +1,98 @@
++#include <cxxtest/TestSuite.h>
++#include "engines/ultima/ultima8/world/actors/cru_stick_input.h"
++
++class CruStickInputTestSuite : public CxxTest::TestSuite {
++public:
++	void testActivationOnlyHasNoUnusedWalkingThreshold() {
++		Ultima::Ultima8::CruStickInput stick(98, 100, 30, false);
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 32767);
++		TS_ASSERT(stick.isActive());
++		TS_ASSERT(!stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 25000);
++		TS_ASSERT(stick.isActive());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 17000);
++		TS_ASSERT(!stick.isActive());
++	}
++
++	void testFaceWithoutWalkingThenStartWalking() {
++		Ultima::Ultima8::CruStickInput stick;
++		stick.update(Ultima::Ultima8::CruStickInput::LEFT, 4000);
++		TS_ASSERT(!stick.isActive());
++		stick.update(Ultima::Ultima8::CruStickInput::LEFT, 7000);
++		TS_ASSERT(stick.isActive());
++		TS_ASSERT(!stick.isWalking());
++		TS_ASSERT_EQUALS(stick.getX(), -7000);
++		TS_ASSERT_EQUALS(stick.getY(), 0);
++		stick.update(Ultima::Ultima8::CruStickInput::LEFT, 18000);
++		TS_ASSERT(stick.isWalking());
++	}
++
++	void testSeparateEntryAndExitThresholds() {
++		Ultima::Ultima8::CruStickInput stick;
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 15000);
++		TS_ASSERT(stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 14000);
++		TS_ASSERT(stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 13000);
++		TS_ASSERT(!stick.isWalking());
++		TS_ASSERT(stick.isActive());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 4500);
++		TS_ASSERT(stick.isActive());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 3000);
++		TS_ASSERT(!stick.isActive());
++	}
++
++	void testDiagonalUsesRadialMagnitude() {
++		Ultima::Ultima8::CruStickInput stick;
++		stick.update(Ultima::Ultima8::CruStickInput::UP, 11000);
++		TS_ASSERT(!stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 11000);
++		TS_ASSERT(stick.isWalking());
++		TS_ASSERT_EQUALS(stick.getX(), 11000);
++		TS_ASSERT_EQUALS(stick.getY(), -11000);
++	}
++
++	void testOppositeHalfAxisReleaseDoesNotCancelNewDirection() {
++		Ultima::Ultima8::CruStickInput stick;
++		stick.update(Ultima::Ultima8::CruStickInput::LEFT, 18000);
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 18000);
++		TS_ASSERT_EQUALS(stick.getX(), 18000);
++		stick.update(Ultima::Ultima8::CruStickInput::LEFT, 0);
++		TS_ASSERT_EQUALS(stick.getX(), 18000);
++		TS_ASSERT(stick.isWalking());
++	}
++
++	void testResetAndReleaseClearBothModes() {
++		Ultima::Ultima8::CruStickInput stick;
++		stick.update(Ultima::Ultima8::CruStickInput::DOWN, 32767);
++		stick.update(Ultima::Ultima8::CruStickInput::DOWN, 0);
++		TS_ASSERT(!stick.isActive());
++		TS_ASSERT(!stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::LEFT, 20000);
++		stick.reset();
++		TS_ASSERT_EQUALS(stick.getX(), 0);
++		TS_ASSERT_EQUALS(stick.getY(), 0);
++		TS_ASSERT(!stick.isWalking());
++	}
++
++	void testFullDiagonalAndInvalidInputAreBounded() {
++		Ultima::Ultima8::CruStickInput stick;
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 50000);
++		stick.update(Ultima::Ultima8::CruStickInput::DOWN, 32767);
++		TS_ASSERT_EQUALS(stick.getX(), 32767);
++		TS_ASSERT(stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, -1);
++		TS_ASSERT_EQUALS(stick.getX(), 0);
++	}
++
++	void testCustomThresholds() {
++		Ultima::Ultima8::CruStickInput stick(25, 70, 5);
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 7000);
++		TS_ASSERT(!stick.isActive());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 15000);
++		TS_ASSERT(stick.isActive());
++		TS_ASSERT(!stick.isWalking());
++		stick.update(Ultima::Ultima8::CruStickInput::RIGHT, 25000);
++		TS_ASSERT(stick.isWalking());
++	}
++};
+diff --git a/test/engines/ultima/ultima8/world/cru_twin_stick_math.h b/test/engines/ultima/ultima8/world/cru_twin_stick_math.h
+new file mode 100644
+index 00000000..442e7943
+--- /dev/null
++++ b/test/engines/ultima/ultima8/world/cru_twin_stick_math.h
+@@ -0,0 +1,44 @@
++#include <cxxtest/TestSuite.h>
++#include "engines/ultima/ultima8/world/actors/cru_twin_stick_math.h"
++
++class CruTwinStickMathTestSuite : public CxxTest::TestSuite {
++public:
++	void testScreenCardinalAimAngles() {
++		using Ultima::Ultima8::CruTwinStickMath;
++		TS_ASSERT_EQUALS(CruTwinStickMath::aimAngle(10000, 0), 4500);
++		TS_ASSERT_EQUALS(CruTwinStickMath::aimAngle(-10000, 0), 22500);
++		TS_ASSERT_EQUALS(CruTwinStickMath::aimAngle(0, -10000), 31500);
++		TS_ASSERT_EQUALS(CruTwinStickMath::aimAngle(0, 10000), 13500);
++	}
++
++	void testScreenDiagonalIsUnprojectedForIsometricWorld() {
++		using Ultima::Ultima8::CruTwinStickMath;
++		TS_ASSERT_EQUALS(CruTwinStickMath::aimAngle(10000, -10000), 34157);
++		TS_ASSERT_EQUALS(CruTwinStickMath::aimAngle(10000, 10000), 10843);
++	}
++
++	void testMotionSpeedDoesNotDependOnStickMagnitude() {
++		using Ultima::Ultima8::CruTwinStickMath;
++		int32 dx, dy;
++		CruTwinStickMath::movement(-7000, 0, 4, dx, dy);
++		TS_ASSERT_EQUALS(dx, -4);
++		TS_ASSERT_EQUALS(dy, 4);
++		CruTwinStickMath::movement(-32768, 0, 4, dx, dy);
++		TS_ASSERT_EQUALS(dx, -4);
++		TS_ASSERT_EQUALS(dy, 4);
++		CruTwinStickMath::movement(0, -32768, 4, dx, dy);
++		TS_ASSERT_EQUALS(dx, -8);
++		TS_ASSERT_EQUALS(dy, -8);
++		CruTwinStickMath::movement(0, 0, 4, dx, dy);
++		TS_ASSERT_EQUALS(dx, 0);
++		TS_ASSERT_EQUALS(dy, 0);
++	}
++
++	void testPoseRoundingWrapsAndHonorsDirectionCount() {
++		using Ultima::Ultima8::CruTwinStickMath;
++		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(35999, true), 0);
++		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(35999, false), 0);
++		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(6500, true), 2);
++		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(6500, false), 3);
++	}
++};

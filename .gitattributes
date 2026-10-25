@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.svg text
+*.json text
+# Unified diff context and third-party license texts must remain verbatim.
+*.patch text -whitespace
+licenses/** -whitespace

@@ -1,0 +1,1766 @@
+{
+  "edition": "GOG English 1.21",
+  "game_id": "remorse",
+  "files": [
+    {
+      "path": "FLICS/01A.AVI",
+      "size": 6009344,
+      "sha256": "c194eeb2092dd342e9b94bb36e70521bfddc5775064e80a987645d36d1acc829"
+    },
+    {
+      "path": "FLICS/01A.TXT",
+      "size": 923,
+      "sha256": "b4bb098cd711d5e58abb421723eb8da432a58b0719f092e273a339c8f42c5199"
+    },
+    {
+      "path": "FLICS/01B.AVI",
+      "size": 2541568,
+      "sha256": "c4c1b9e241b1d4a2c1578424318f692ec92d56e2b7b11c92ee6d9de4cbdf67fd"
+    },
+    {
+      "path": "FLICS/01B.TXT",
+      "size": 419,
+      "sha256": "d094c0f258b35850ad123ca193c1901213d2cf345c1c236c9f0f4ad055fc4143"
+    },
+    {
+      "path": "FLICS/01C.AVI",
+      "size": 3186176,
+      "sha256": "9405916da50fd057b2faf6e51e9db839e24a6b5a1486245606842b8c35a58587"
+    },
+    {
+      "path": "FLICS/01C.TXT",
+      "size": 406,
+      "sha256": "8e572762b213480b276a28704529190fde5891d28864251568aa6372d1e1139a"
+    },
+    {
+      "path": "FLICS/01D.AVI",
+      "size": 6873600,
+      "sha256": "153108da7c73df955feaf22a7c6405645e103aa1ef3043d6e2d42ff0dbd6ae61"
+    },
+    {
+      "path": "FLICS/01D.TXT",
+      "size": 1097,
+      "sha256": "d37620a932baae4d9b399e58b7158d446940c7f3f4bdac9724ab696caa844b61"
+    },
+    {
+      "path": "FLICS/01E.AVI",
+      "size": 1849344,
+      "sha256": "f8cd537787c8a85af1ae8d77d48195f8b8f3b738ef622badf4e9f3b4cb2a7702"
+    },
+    {
+      "path": "FLICS/01E.TXT",
+      "size": 391,
+      "sha256": "b24a8ad07ace1601f050a2101fc5c5b65f54ea025e96472c1cbafa53f86b2a10"
+    },
+    {
+      "path": "FLICS/02B.AVI",
+      "size": 3552256,
+      "sha256": "dddfa1b61562b67c8050a3582eceeaf2d4b1c40b710f313f98f7a7c2f5c97175"
+    },
+    {
+      "path": "FLICS/02B.TXT",
+      "size": 657,
+      "sha256": "ca0c8721794f7b8c5075a3424bff0c2a97afbbbee910fa4c8fc0a9aefb8c9bc2"
+    },
+    {
+      "path": "FLICS/02C.AVI",
+      "size": 1417728,
+      "sha256": "ca3a69dae0de3cab16436b985cec75fb1ecb845b8435a14d505b6f765f73d807"
+    },
+    {
+      "path": "FLICS/02C.TXT",
+      "size": 482,
+      "sha256": "74aa07a851fbfc4777c9aa3c2dde232db114e76b611b5dbeb4e343aeda9f38db"
+    },
+    {
+      "path": "FLICS/02D.AVI",
+      "size": 1165312,
+      "sha256": "2abde18505732e5bc0e931f10a101346b0660d9a15d73aed79f3ddc558b8844a"
+    },
+    {
+      "path": "FLICS/02D.TXT",
+      "size": 246,
+      "sha256": "8267f4027cf184a96911e6ba401a3bc0c41f8dfb593d087255bcd49e928b272a"
+    },
+    {
+      "path": "FLICS/02E.AVI",
+      "size": 1915392,
+      "sha256": "e0c7862973679347537492c62b87a7f39a38f672fc446535fdeea33a67caf5e7"
+    },
+    {
+      "path": "FLICS/02E.TXT",
+      "size": 435,
+      "sha256": "f9bc5bdcfdcf65e187463615a0fd72b7b4eef702584d099f55199cf3b174799e"
+    },
+    {
+      "path": "FLICS/02F.AVI",
+      "size": 3566080,
+      "sha256": "e46e4d3d69da79cdbb2c6f65dba4018df642b817498bce53ac575773c69d6863"
+    },
+    {
+      "path": "FLICS/02F.TXT",
+      "size": 717,
+      "sha256": "26437f580751edffdcb9f3caa5a27252f969e35a772c7df2c5e798297ca13ea2"
+    },
+    {
+      "path": "FLICS/02G.AVI",
+      "size": 2484224,
+      "sha256": "778f14b9d9229feffc1fed011d4ac2cca428008ffa42fdb7d000b1b6c753cda8"
+    },
+    {
+      "path": "FLICS/02G.TXT",
+      "size": 355,
+      "sha256": "d5a6501f0933fef9e57573547bbd34a9a48179b629bf4619fa8d661a639273bf"
+    },
+    {
+      "path": "FLICS/02H.AVI",
+      "size": 2805248,
+      "sha256": "db0cd484374ca9d928b3a88d5c99cdbfcd436f2b046f65dc4c64d65417daa54d"
+    },
+    {
+      "path": "FLICS/02H.TXT",
+      "size": 638,
+      "sha256": "0cf0002c79e63e35af56eb9d5c66a6766986cc2345c0e3df58fc2d581234a626"
+    },
+    {
+      "path": "FLICS/02I.AVI",
+      "size": 3525632,
+      "sha256": "9107be8c6cb0462ab9ae22ff7967ad492e8377489e6d99ae91b1f1e355b911c4"
+    },
+    {
+      "path": "FLICS/02I.TXT",
+      "size": 412,
+      "sha256": "7d335fb25f7820f3cc7753bf8082fcbd567adde5602206860e6e82d7606a4dec"
+    },
+    {
+      "path": "FLICS/02J.AVI",
+      "size": 1754112,
+      "sha256": "59f909b2adfea96e0dfd405fa6defef6d82dd0c694673383258716afb260ded0"
+    },
+    {
+      "path": "FLICS/02J.TXT",
+      "size": 329,
+      "sha256": "b08efe73ec1935e9a30ad5a597b5f1adcdbf90a178f1baf43c2bdd98ba998a63"
+    },
+    {
+      "path": "FLICS/02K.AVI",
+      "size": 1524736,
+      "sha256": "41c69c30f2dab9cd6d26d8d946dc678a050519a50bbb359b1afee0da1ca25aeb"
+    },
+    {
+      "path": "FLICS/02K.TXT",
+      "size": 353,
+      "sha256": "17463c03399377c2dd56174bebb4c4cdc1a130982c2d5e2f789e93de4acb548d"
+    },
+    {
+      "path": "FLICS/03A.AVI",
+      "size": 730624,
+      "sha256": "35749a8c2f91a0e865f327a960ffaa8caf7a569ac55edcf2937c8265be8baad6"
+    },
+    {
+      "path": "FLICS/03A.TXT",
+      "size": 162,
+      "sha256": "0a199b715b3555e09daf77bc6a63b55e137651cc7ed718f426d439210fdd9714"
+    },
+    {
+      "path": "FLICS/03C.AVI",
+      "size": 2405376,
+      "sha256": "0c62bfcd2963b074cacdcf1a0541209418288f4ce275d7bdf3265715b1cf9b5e"
+    },
+    {
+      "path": "FLICS/03C.TXT",
+      "size": 632,
+      "sha256": "590d70a97283d748a1d6a82ff5e34879a175da5e1ad162af87d15e1c30ead0dd"
+    },
+    {
+      "path": "FLICS/03D.AVI",
+      "size": 1783808,
+      "sha256": "d8432a7bc6e6fb7152d384bf05a219cc8471f63a0765e28dec71aae2cf8b3fe5"
+    },
+    {
+      "path": "FLICS/03D.TXT",
+      "size": 427,
+      "sha256": "c8da083d89b52a6133ea056511b43e47df66c9768f4074697990990c996cbc0f"
+    },
+    {
+      "path": "FLICS/03E.AVI",
+      "size": 929792,
+      "sha256": "8e043e16659fc4c5a0fc61cfc742e3d445e6dde4c82bf00cb54b1804d61fc997"
+    },
+    {
+      "path": "FLICS/03E.TXT",
+      "size": 215,
+      "sha256": "bcf75d252f72cee02f10ca6f201884c2f419fcd6c9a9a833caf4d96de5fa86ed"
+    },
+    {
+      "path": "FLICS/03F.AVI",
+      "size": 4477440,
+      "sha256": "e8aec7cc023fd5e7fa12aa8154cb177d224d4363f4fecbc58c1181e6d02c1321"
+    },
+    {
+      "path": "FLICS/03F.TXT",
+      "size": 771,
+      "sha256": "726bd0c77c82097405cdc692c944607df596de81761f08e4e76034a69952fc5f"
+    },
+    {
+      "path": "FLICS/03G.AVI",
+      "size": 3127296,
+      "sha256": "81913c6bc41d63b164a9934024efdc8fa06d710363ae5dd9d3448c5edd98efd2"
+    },
+    {
+      "path": "FLICS/03G.TXT",
+      "size": 374,
+      "sha256": "d851eed00860bd136ac99fb79e25f3e189f7adaf95372e094bffd7f88e3cef99"
+    },
+    {
+      "path": "FLICS/03H.AVI",
+      "size": 6872064,
+      "sha256": "61342e2738cef89e755c06cbf1a7788d0e18155b92bbeaadc2291121c086b4e0"
+    },
+    {
+      "path": "FLICS/03H.TXT",
+      "size": 678,
+      "sha256": "1538a07547f0358de5bd2c83cc5522325f162fc04f7bc63716f103311cb132a4"
+    },
+    {
+      "path": "FLICS/03I.AVI",
+      "size": 1505280,
+      "sha256": "88a1658fdaa0da5e257bb57b59932a194fd64231ae2961edcefdbb25d35aca8d"
+    },
+    {
+      "path": "FLICS/03I.TXT",
+      "size": 233,
+      "sha256": "b763b67df7577666d933c074869601b6457340375c1ca2fcdfbd33efda3242db"
+    },
+    {
+      "path": "FLICS/03J.AVI",
+      "size": 1595904,
+      "sha256": "6d3aa4c5c5ee8ebb42991895c22bb6fd296ddc503c6434c810ab2bc2b1e82723"
+    },
+    {
+      "path": "FLICS/03J.TXT",
+      "size": 334,
+      "sha256": "63bc0b22d56ebc9bef44f2012a6fb06c773a8c49515fdd25688a239d25102cd7"
+    },
+    {
+      "path": "FLICS/04A.AVI",
+      "size": 5143040,
+      "sha256": "ad09c6b9f051b343330f7b58885fad18f5121e587955bd7980ae93893ca17b47"
+    },
+    {
+      "path": "FLICS/04A.TXT",
+      "size": 562,
+      "sha256": "bb64973881533e8fe16a44eb42928d5baa34d6a04545c0ee72c1bc7df4491f40"
+    },
+    {
+      "path": "FLICS/04B.AVI",
+      "size": 2713600,
+      "sha256": "0ce32d085da867729ca3e0763244c89ed06cb7bbf65c90062d704ca04f08a4c9"
+    },
+    {
+      "path": "FLICS/04B.TXT",
+      "size": 603,
+      "sha256": "673e867a85a14309e197d4cc66df47998e7ea87a461ba44bdcb34b89faf4a758"
+    },
+    {
+      "path": "FLICS/04C.AVI",
+      "size": 2711552,
+      "sha256": "29d8e252dbf3c8c64415a34f6b20383d42cfeab3ad2849dcdad0d14371e46086"
+    },
+    {
+      "path": "FLICS/04C.TXT",
+      "size": 816,
+      "sha256": "7e284f9d4a4cc099f7ead391f4ad8f356e540ee1193738ea277a11407d841f5f"
+    },
+    {
+      "path": "FLICS/04D.AVI",
+      "size": 2478592,
+      "sha256": "1bcabc6499bd8b6b10c6967cb05345920b3e7b4c514c734aab89fe41a5a2e357"
+    },
+    {
+      "path": "FLICS/04D.TXT",
+      "size": 667,
+      "sha256": "f5f83a85da9334ecf9f829d706bc07f4ad3af2e6c73e771c47aa672d6165b2a9"
+    },
+    {
+      "path": "FLICS/04E.AVI",
+      "size": 6066176,
+      "sha256": "b059fba23ae9240d072b190aeb5f7ca9d34d9eb608d33c8e89eeffe412ed8dc9"
+    },
+    {
+      "path": "FLICS/04E.TXT",
+      "size": 1028,
+      "sha256": "610e8310751d388af75c74e2360481f810791ff86e964951e92ef7b3bd958c9e"
+    },
+    {
+      "path": "FLICS/04F.AVI",
+      "size": 4343296,
+      "sha256": "983d500f37c97a2e0b03cde4bc101e2837438385f5ebd2f3fe534e1bd6f176bd"
+    },
+    {
+      "path": "FLICS/04F.TXT",
+      "size": 519,
+      "sha256": "a7dc1464ec4a51c3ae322915b00a46066cf3eb0fe3eec09fd75b409d77b05df1"
+    },
+    {
+      "path": "FLICS/04G.AVI",
+      "size": 7019520,
+      "sha256": "6b17a758d812ff6b27989feb544b51c74db1ea5fc280a5e0c349074fd7ae70ef"
+    },
+    {
+      "path": "FLICS/04G.TXT",
+      "size": 674,
+      "sha256": "778dfcc3d151df68a339f5e51a9295d68be0370cece56c15d437256ced8874b6"
+    },
+    {
+      "path": "FLICS/04H.AVI",
+      "size": 2008576,
+      "sha256": "b188b16dccaf45d17bb7cdb633d573389da6c4ad3698fd7bb82f1adee0305502"
+    },
+    {
+      "path": "FLICS/04H.TXT",
+      "size": 503,
+      "sha256": "4d5a1d8e9ffe500ff48b300cdefbd1b8d7a17dac4acfa60398ffdb2d970e414c"
+    },
+    {
+      "path": "FLICS/05A.AVI",
+      "size": 2429440,
+      "sha256": "e8c8dc54f7e505c9658f700f914f18e5d13f42c623cf0a55a807320d5574e5ec"
+    },
+    {
+      "path": "FLICS/05A.TXT",
+      "size": 549,
+      "sha256": "47aa64ae5dbea7e5036904baef80dd3489936e7b8ead57670f5f6044e47d96dc"
+    },
+    {
+      "path": "FLICS/05B.AVI",
+      "size": 4169216,
+      "sha256": "e0c1b069a824ff4dc91f60fb8aa3bf8341ab3ba307b84e46788a00942f068d0e"
+    },
+    {
+      "path": "FLICS/05B.TXT",
+      "size": 551,
+      "sha256": "f5c06c291593f728854d89dcb3402caf5904ad3baf3f14dd5ae72237b32913bf"
+    },
+    {
+      "path": "FLICS/05C.AVI",
+      "size": 3475968,
+      "sha256": "9785331aadff9bf961cf50240a8f5e4cc48b77aec55e3c68e18224738f618fca"
+    },
+    {
+      "path": "FLICS/05C.TXT",
+      "size": 637,
+      "sha256": "affd1ab756c8540558e6ae8fcaf815c211c65b807f486756782625ddafe50d1a"
+    },
+    {
+      "path": "FLICS/05D.AVI",
+      "size": 1046528,
+      "sha256": "4cda1ea19945cda0db7b9fe896562c939536a21be4b4162839959cbb6c054784"
+    },
+    {
+      "path": "FLICS/05D.TXT",
+      "size": 313,
+      "sha256": "1a5e5ad5a7d47ee97987fa3b552cf7e974ded185d6a2517d4750eb8a3abd1b69"
+    },
+    {
+      "path": "FLICS/05E.AVI",
+      "size": 6153728,
+      "sha256": "d0331b621b1c7afd78c12825fa3fbfabfcf0f10ef5e6184a328d838b11b70b3d"
+    },
+    {
+      "path": "FLICS/05E.TXT",
+      "size": 998,
+      "sha256": "67b51fc0c14564d8726429ab77e68bc353f851233d84bf9b37590806dbb3032a"
+    },
+    {
+      "path": "FLICS/05F.AVI",
+      "size": 3572736,
+      "sha256": "78dcb0606af66a4650b5fa256abb3f25b403eab7509349735fa789971d054fa9"
+    },
+    {
+      "path": "FLICS/05F.TXT",
+      "size": 588,
+      "sha256": "6c930d018f381effe3bfdfea6cd06aeac7f27e4b0ec34393d9432361a62ada04"
+    },
+    {
+      "path": "FLICS/05G.AVI",
+      "size": 4389888,
+      "sha256": "0417eb8cfb789238262e964e0beeb94abe0cc06e88422758f73df95b4df9f54e"
+    },
+    {
+      "path": "FLICS/05G.TXT",
+      "size": 742,
+      "sha256": "0291a22ef433241e4fb7685a9d3878a942ae7a80782122d030ccbf514462d264"
+    },
+    {
+      "path": "FLICS/05H.AVI",
+      "size": 2082304,
+      "sha256": "1e901ff089d61180401cb64f3f2f52f19f5b8b1e53f7854835987b37e9b1e584"
+    },
+    {
+      "path": "FLICS/05H.TXT",
+      "size": 582,
+      "sha256": "46ce7f9ac1ef1cce4f9a42504b11a63548507f797bb34036dc6d7fad98af0158"
+    },
+    {
+      "path": "FLICS/06A.AVI",
+      "size": 4746752,
+      "sha256": "556e435459b85d66c5e698d477aca7928823cf0cc69fee6da8a762616c9af3ee"
+    },
+    {
+      "path": "FLICS/06A.TXT",
+      "size": 742,
+      "sha256": "a0436f1cf1675c2ad37905c2695958fae48494c97dca7a37a13f574c5009085c"
+    },
+    {
+      "path": "FLICS/06B.AVI",
+      "size": 2252800,
+      "sha256": "f7199008981129c32d157756c08a48a3a335b883476e03217a7756943bda1cb6"
+    },
+    {
+      "path": "FLICS/06B.TXT",
+      "size": 468,
+      "sha256": "8657d21fa4c57a32e3048a5f90c94471d076c91782fd5f9e9d0a39d0efd06f2b"
+    },
+    {
+      "path": "FLICS/06D.AVI",
+      "size": 1438208,
+      "sha256": "cb85f960da470a82609608b397f53467c9f1fed424c3bae1ee04ff29abf6c9cd"
+    },
+    {
+      "path": "FLICS/06D.TXT",
+      "size": 403,
+      "sha256": "c60d8d95931a52bffe579d2827dfc22b66f6b6e71f1e9c713e2959a6c27b7b74"
+    },
+    {
+      "path": "FLICS/06E.AVI",
+      "size": 4820480,
+      "sha256": "c0b29bb58aa7c9b5e554125c139fc4bd1c3f1535e7acb682433bed152dd88302"
+    },
+    {
+      "path": "FLICS/06E.TXT",
+      "size": 827,
+      "sha256": "21acd6c6f7f36275052df244919a8ae93ea328f56a87c61d1a0555173ed6d589"
+    },
+    {
+      "path": "FLICS/06F.AVI",
+      "size": 1641984,
+      "sha256": "68fa73a4ad2b56b98c2ce964a96dc79fc02004d4729c48f16cc5e21a099bdbcb"
+    },
+    {
+      "path": "FLICS/06F.TXT",
+      "size": 257,
+      "sha256": "2e3d9aee5c33fb4d84bf04b9449f6b2ab0aeddf5a76a04d261da53d44d6625d9"
+    },
+    {
+      "path": "FLICS/06G.AVI",
+      "size": 2047488,
+      "sha256": "65b5af59aaf50804156d2828be01764a982423e41671003ac03f8f825f829e9d"
+    },
+    {
+      "path": "FLICS/06G.TXT",
+      "size": 580,
+      "sha256": "316677df054024e03322ffd7b07075af26f207b90edc5c23b45692fa589262a3"
+    },
+    {
+      "path": "FLICS/06H.AVI",
+      "size": 1816576,
+      "sha256": "8fe51f2dc6459798e0f07c5cd22378f57f7fedd4d8ac4f9b6867712f70415c85"
+    },
+    {
+      "path": "FLICS/06H.TXT",
+      "size": 259,
+      "sha256": "5297a3a772825e1c5ae933f45c2918587a1814b4bc945df609be11e789bed5fc"
+    },
+    {
+      "path": "FLICS/06I.AVI",
+      "size": 671232,
+      "sha256": "c90a8d06f8c0bc47824f3398a3478025f16e64531f33534a1a3a6ec1468d8c72"
+    },
+    {
+      "path": "FLICS/06I.TXT",
+      "size": 205,
+      "sha256": "385dbefde315b6ac461af6c26f4bb1ff487e419fb511657a848ea393a9aeef25"
+    },
+    {
+      "path": "FLICS/06J.AVI",
+      "size": 4524032,
+      "sha256": "7596c7a74f7d947a4c1fdc282fa33dc4df53fb4fa0708e5054ebd065567c991d"
+    },
+    {
+      "path": "FLICS/06J.TXT",
+      "size": 617,
+      "sha256": "4fe9bc5fa267957ca78b3a2aeccc4f183b965495711f318949e3c5b2e13481ed"
+    },
+    {
+      "path": "FLICS/07A.AVI",
+      "size": 3936256,
+      "sha256": "f3bc93bafe273804ba56fbeb31452976ed7abbd136255f4ac73f98398484380a"
+    },
+    {
+      "path": "FLICS/07A.TXT",
+      "size": 597,
+      "sha256": "aff3bb4f88e12ffebc78a273e1f73b652510e584835e4968ae9e7dcaee6c846e"
+    },
+    {
+      "path": "FLICS/07B.AVI",
+      "size": 2402816,
+      "sha256": "6a3b0d3daca3f6333393b6878a666af2ddefca8a351f88a2f7e061bd47e02015"
+    },
+    {
+      "path": "FLICS/07B.TXT",
+      "size": 500,
+      "sha256": "de93b9a70e405b038a5f952a054b487ece7c21bd62b7458f933af62d0ce738da"
+    },
+    {
+      "path": "FLICS/07C.AVI",
+      "size": 2549248,
+      "sha256": "7440a9710861a6f8809c401dc0498cec19659d51a013625e1449eeced16303b8"
+    },
+    {
+      "path": "FLICS/07C.TXT",
+      "size": 615,
+      "sha256": "5cfe5e367e1dcf455a24b6aecc9aa8a41f1a0a632ef0eb6c6fe9a7cc70afdb86"
+    },
+    {
+      "path": "FLICS/07D.AVI",
+      "size": 4197376,
+      "sha256": "1c5ff2e705960a8d159a1495699d08b1056cc2d9e2e62a08a66b7382e73f8b66"
+    },
+    {
+      "path": "FLICS/07D.TXT",
+      "size": 672,
+      "sha256": "815f2b274b6ac033c5acb5eae5195360b02f521d60943ea6a0a18c6603b3a7ab"
+    },
+    {
+      "path": "FLICS/07E.AVI",
+      "size": 3111424,
+      "sha256": "383aedbb45747b62303d671de84ecfdb34a0b1a8f10ce1c0369a8a2cb236e0ec"
+    },
+    {
+      "path": "FLICS/07E.TXT",
+      "size": 431,
+      "sha256": "7d3fdd095257873ff4cd8221350d37a4757c462c5f6fa2a72a1adde87cefc06f"
+    },
+    {
+      "path": "FLICS/07F.AVI",
+      "size": 2358784,
+      "sha256": "684ab5e1bfa9685dab47dc5c2aa641e53ee3b12d927f59f6ac6c4cd41bb42649"
+    },
+    {
+      "path": "FLICS/07F.TXT",
+      "size": 722,
+      "sha256": "88db65e62bf312796c51465614099e8d7a8809dec2aca5ca951111aea1a80ff7"
+    },
+    {
+      "path": "FLICS/08A.AVI",
+      "size": 5149696,
+      "sha256": "39cc2a0d7405cecdedce919d050feac9f9655498e660fdda60914fadbdbd8a36"
+    },
+    {
+      "path": "FLICS/08A.TXT",
+      "size": 860,
+      "sha256": "6ddd35b5858855bcde496293d7b282899bd45ecba7982bd71a91ecf52a012ade"
+    },
+    {
+      "path": "FLICS/08B.AVI",
+      "size": 4745216,
+      "sha256": "d19b397866feb44d88fc8c0c4f453e064af703753e5a49373445bd09e7f5c3cd"
+    },
+    {
+      "path": "FLICS/08B.TXT",
+      "size": 512,
+      "sha256": "0bf4cf543a115613446d70c6ee7cabe9eb75d0c85579c798eefecefe92417b37"
+    },
+    {
+      "path": "FLICS/08C.AVI",
+      "size": 1607168,
+      "sha256": "831ac2a968aef40a3cbca1f160b5966ba63fe9dc420b66111978f659b4c83e81"
+    },
+    {
+      "path": "FLICS/08C.TXT",
+      "size": 364,
+      "sha256": "027eddcfadc867fd0f47c9d7da1e353fb256a62c07fab262e2b9a16c0ed60cf5"
+    },
+    {
+      "path": "FLICS/08D.AVI",
+      "size": 3870720,
+      "sha256": "91ee021ae30a99c096c5babf57cf24d396db667da5b33d002bd0fb7bd6d765e4"
+    },
+    {
+      "path": "FLICS/08D.TXT",
+      "size": 791,
+      "sha256": "50ea80a867639b2448e13ae278e8cd72c65d266f8483ed82f35469ef9a579bbb"
+    },
+    {
+      "path": "FLICS/08E.AVI",
+      "size": 1958400,
+      "sha256": "4f633d0bd7a93922d1e785a4eb934dd66adfb57315d64f9ffd4d73f3a4743c23"
+    },
+    {
+      "path": "FLICS/08E.TXT",
+      "size": 432,
+      "sha256": "694b3195399674a0bbe132127739ed22d10e9ae7c31b39ae29224ace7b09d916"
+    },
+    {
+      "path": "FLICS/08F.AVI",
+      "size": 4259328,
+      "sha256": "809c639317192e4bfda0fd52c3f3fd292e811bc5093dadec970b030250687398"
+    },
+    {
+      "path": "FLICS/08F.TXT",
+      "size": 446,
+      "sha256": "fc261170508d7eaa048f64f5e32e8ee45e322b87f768d100bd1f0b351a3dabcd"
+    },
+    {
+      "path": "FLICS/08G.TXT",
+      "size": 109,
+      "sha256": "8beb41d0b0ef376e41ccd84d8ce5d8e582ac37fbfb626fda170fda232af410fd"
+    },
+    {
+      "path": "FLICS/08H.AVI",
+      "size": 3808768,
+      "sha256": "dfb6a34a7717837defb6969bfd53adcb558c4dbe7fc37ca04c7220df04346f97"
+    },
+    {
+      "path": "FLICS/08H.TXT",
+      "size": 428,
+      "sha256": "b5ecc920d19c97611957002621135d9e77624f0ebacd830744111a7559fd0797"
+    },
+    {
+      "path": "FLICS/08I.AVI",
+      "size": 10236416,
+      "sha256": "4d5549ba4ea96e15fb7d534e881100a852778f3f3f5fc3024e5242bb0f379177"
+    },
+    {
+      "path": "FLICS/08I.TXT",
+      "size": 1896,
+      "sha256": "d71c21dba544dbdbc0e2b45b65e298ca10ef62422fd5c86aab7bc5b5a1726ae9"
+    },
+    {
+      "path": "FLICS/08J.AVI",
+      "size": 2132480,
+      "sha256": "1f3034362235f430053403a29906538e4c49e0fa4ff56c48782e41157f129014"
+    },
+    {
+      "path": "FLICS/08J.TXT",
+      "size": 467,
+      "sha256": "78dec0c051ff784655e5776e4bee7cd544e4199efdfd5e68fd9586998ba82a0b"
+    },
+    {
+      "path": "FLICS/09A.AVI",
+      "size": 1630208,
+      "sha256": "793d686a16a24debf8c38a2cee461c8aca63ad1ef23d45567b4328c934c0daaf"
+    },
+    {
+      "path": "FLICS/09A.TXT",
+      "size": 444,
+      "sha256": "8f3e7fa9281bc3c42065e68b12170228e119417b147af2aa0c786f303bcb45e7"
+    },
+    {
+      "path": "FLICS/09B.AVI",
+      "size": 884736,
+      "sha256": "a2efcd881da0a57cb6593804cb9f8b5650fa65991096e5aab8f75644ca9be2dc"
+    },
+    {
+      "path": "FLICS/09B.TXT",
+      "size": 232,
+      "sha256": "bd8ade948f17f6897e0ceccfbaffd4414109c451be958ebccf8c9b128027ef8a"
+    },
+    {
+      "path": "FLICS/09C.AVI",
+      "size": 2357248,
+      "sha256": "05817183a38a3379665d24c00a2eb2e50e41b2f95b47d7885c2d833011bdd379"
+    },
+    {
+      "path": "FLICS/09C.TXT",
+      "size": 393,
+      "sha256": "ebfc5806e0657ed0fe27a8ea3ad173e83ae9f68ceb94e1e2b33818f15656ab6a"
+    },
+    {
+      "path": "FLICS/09D.AVI",
+      "size": 3950592,
+      "sha256": "c1d7e29843bec51ba345f91efdf52ef7dde22b1070d89cff73f8bbe78d1c08c4"
+    },
+    {
+      "path": "FLICS/09D.TXT",
+      "size": 687,
+      "sha256": "9f32fc17f65b49ce7a29f5f3b3521bf26e661301c93afe6f4e8a76307781e9a5"
+    },
+    {
+      "path": "FLICS/09E.AVI",
+      "size": 5078528,
+      "sha256": "3cc2d3443379b34e8c89e9a5d2f1c4ac8c04fd91b717c6ccca8fb9741a8bd9d6"
+    },
+    {
+      "path": "FLICS/09E.TXT",
+      "size": 1142,
+      "sha256": "d4d0001d92b6df2da866bdf7fa1d793669ec204f89e6ac693107c9179513b9dc"
+    },
+    {
+      "path": "FLICS/09F.AVI",
+      "size": 2134528,
+      "sha256": "0bd2900668bfac040ead67af93e4442e48eadb6b303e166200800a2040940652"
+    },
+    {
+      "path": "FLICS/09F.TXT",
+      "size": 284,
+      "sha256": "c7f4589494c79577ba17b23ef9595328bc2742660a192f2a3e3b0a1457ffac73"
+    },
+    {
+      "path": "FLICS/09G.AVI",
+      "size": 1552384,
+      "sha256": "166c69311ddde12177ec225f7c79780ffb5228323b59b3770c0bb84aab2edcef"
+    },
+    {
+      "path": "FLICS/09G.TXT",
+      "size": 393,
+      "sha256": "85a8f2dd80edc352ebd4e08a80b1148571417431221ed209f1bec1bac990bcb4"
+    },
+    {
+      "path": "FLICS/10A.AVI",
+      "size": 2467328,
+      "sha256": "5e7664949737ec8ae2f89168b3fcb76fb02939ea9377bd362048e6dc802b4f81"
+    },
+    {
+      "path": "FLICS/10A.TXT",
+      "size": 523,
+      "sha256": "2eed7fe18c231d374a399f368af772653b548444a9018f0f49bdb2a7b28e3e05"
+    },
+    {
+      "path": "FLICS/10B.AVI",
+      "size": 1747456,
+      "sha256": "a2ac19442350600971b035c59c04d305fe7941930b5ea176bca8c7ff185317bd"
+    },
+    {
+      "path": "FLICS/10B.TXT",
+      "size": 324,
+      "sha256": "0ca238664e0e1ed90665b4163770eac0aa4254310bb1158c2dd2f16da0b50981"
+    },
+    {
+      "path": "FLICS/10D.AVI",
+      "size": 2777600,
+      "sha256": "9ca18ddba5c3915742b7dc90b87353d00212c0dff1e7d17bfc87b7a71684806d"
+    },
+    {
+      "path": "FLICS/10D.TXT",
+      "size": 678,
+      "sha256": "cad2ab468adfc385ad01d5ccba9a5bb62a14c0b4ef2368f6fbecdea8b63f685c"
+    },
+    {
+      "path": "FLICS/10E.AVI",
+      "size": 2921472,
+      "sha256": "f9c462993b1c48285acfed996766ee3f52c02f3ce88ffa88f529ac9aee7315e7"
+    },
+    {
+      "path": "FLICS/10E.TXT",
+      "size": 555,
+      "sha256": "7a3b9a43c1c0a73569e9b17c192d33cdacca764299544c45f59c379c7aea6767"
+    },
+    {
+      "path": "FLICS/10F.AVI",
+      "size": 1441792,
+      "sha256": "cfd77bed501898cf531c13ea2f9eeb790ccc409dc81101a5c28cc374c45dcbb4"
+    },
+    {
+      "path": "FLICS/10F.TXT",
+      "size": 111,
+      "sha256": "dbbc80b42aebf0dd5ea4b4732f6d75e26e9ed4ab3620c50b8e15067d07876556"
+    },
+    {
+      "path": "FLICS/10G.AVI",
+      "size": 2200576,
+      "sha256": "72786325e250b0910bb0d285fe8a74b58686ffc071e1a0a80bc3883f01db062e"
+    },
+    {
+      "path": "FLICS/10G.TXT",
+      "size": 368,
+      "sha256": "f1b2fa09bb3b861a773aa496ca19e31d0afcbfb348b7eac2aab6dadbb7162d11"
+    },
+    {
+      "path": "FLICS/10H.AVI",
+      "size": 1701888,
+      "sha256": "738512b1417e019055b4f00fa3f4f9236b9e1625b5c947046a00df90362926bc"
+    },
+    {
+      "path": "FLICS/10H.TXT",
+      "size": 421,
+      "sha256": "68bf479393182eab734c6c7fc98cabb8413f9a40e40413f5076dcce5db097983"
+    },
+    {
+      "path": "FLICS/11A.AVI",
+      "size": 2355200,
+      "sha256": "4caf4cd048f744c4cc12b146449a1a88bdbeec8aca9babf6a8416f01c05c83d3"
+    },
+    {
+      "path": "FLICS/11A.TXT",
+      "size": 528,
+      "sha256": "57a25639cf0f8b56a0449adce117cd9527a93760a40c07c1c49770903432f546"
+    },
+    {
+      "path": "FLICS/11B.AVI",
+      "size": 4317184,
+      "sha256": "e656bb41d3d295934ef9d6df5a2532c63fd39c803a53cf0236027dc0405a64ff"
+    },
+    {
+      "path": "FLICS/11B.TXT",
+      "size": 643,
+      "sha256": "5a592885755b64f1bc1be35995921cc3e7c9ac032e4d4bf0b06a754c6a855008"
+    },
+    {
+      "path": "FLICS/11D.AVI",
+      "size": 1422336,
+      "sha256": "8179af0577573891878f0ee15991a88f284d001cb4380081bf60eb7b2c403acd"
+    },
+    {
+      "path": "FLICS/11D.TXT",
+      "size": 394,
+      "sha256": "b585e3b997525bc935dd56d0a59083cdb9d009240bb628b09bfb68750b565d3e"
+    },
+    {
+      "path": "FLICS/11E.AVI",
+      "size": 2612224,
+      "sha256": "2995e7c35ad40220deccfdb7c4ae333d60fe3f89f81fca8485da55f049d92467"
+    },
+    {
+      "path": "FLICS/11E.TXT",
+      "size": 745,
+      "sha256": "ac0116a5aae30c8952e8017a2c84465e620dbe1b7498e811add61dfab5104e8f"
+    },
+    {
+      "path": "FLICS/11F.AVI",
+      "size": 3185152,
+      "sha256": "c4b8a9fb2d8d79011cde17fcb5b16cebda5f04c60aa90c520820a985422f7e5c"
+    },
+    {
+      "path": "FLICS/11F.TXT",
+      "size": 274,
+      "sha256": "a1bbae502cc702dd020dbab087cd887c04c7917348a4b930b9b74ce85101d646"
+    },
+    {
+      "path": "FLICS/11G.AVI",
+      "size": 3847168,
+      "sha256": "c187e64ab95059ddaa637e811165920b837f133efd25f95b9f86a6af748ccee9"
+    },
+    {
+      "path": "FLICS/11G.TXT",
+      "size": 212,
+      "sha256": "c2aa523d5beea0ba109a5164969e619da91eea36069b77d86fdf79a81c59c26b"
+    },
+    {
+      "path": "FLICS/11H.AVI",
+      "size": 1741312,
+      "sha256": "ecc033b39c6057b051300cc06ccc4e21b372fba180b1b63bcdb4c406da9cf3a0"
+    },
+    {
+      "path": "FLICS/11H.TXT",
+      "size": 405,
+      "sha256": "769b569bf705d3c3c4a56035d91a09365daaaf7126161d566f4561a2110c8bcc"
+    },
+    {
+      "path": "FLICS/12A.AVI",
+      "size": 3747328,
+      "sha256": "01690600b0455781163556d4ef765de3425e51108ab1cb8f7bf31950fb5515b8"
+    },
+    {
+      "path": "FLICS/12A.TXT",
+      "size": 619,
+      "sha256": "7d65d34013829992f6ac31c17aaecc960caec50e50823c95a1631826ce56ea33"
+    },
+    {
+      "path": "FLICS/12B.AVI",
+      "size": 2374656,
+      "sha256": "c362ed7e8267358c46adc779ac83f15eee51111a0870357ea93fbce3f65881a4"
+    },
+    {
+      "path": "FLICS/12B.TXT",
+      "size": 288,
+      "sha256": "8e4306bb8c5703186cd73afbd3d0b3a77db41502b0b33960d687986a6d94d331"
+    },
+    {
+      "path": "FLICS/12C.AVI",
+      "size": 1677242,
+      "sha256": "b92e9829c472c112f1cd2433a67e226fd84885d75742f0218e7b40091df5707d"
+    },
+    {
+      "path": "FLICS/12C.TXT",
+      "size": 283,
+      "sha256": "93f682e2ddad44d09734d8f23a13c7bf840750e266e7b6e8c0505a616c850acc"
+    },
+    {
+      "path": "FLICS/12D.AVI",
+      "size": 3946496,
+      "sha256": "c1235f6632004e8b0b45d685e0851fdb9ce30235be339add56ab48002b0c8851"
+    },
+    {
+      "path": "FLICS/12D.TXT",
+      "size": 791,
+      "sha256": "9952529939739e36a7c7058f8e929663d405f3e60bf25a2119cfe628144a5104"
+    },
+    {
+      "path": "FLICS/12E.AVI",
+      "size": 2743808,
+      "sha256": "658da8de19e484f907876b0ac4a281c87be1d26329f026381c9dbcb07ea15974"
+    },
+    {
+      "path": "FLICS/12E.TXT",
+      "size": 392,
+      "sha256": "a0a6be08b00cf5ae32f203790b118a1353dcbbb1dfda44ef27980585746059fe"
+    },
+    {
+      "path": "FLICS/12F.AVI",
+      "size": 1860096,
+      "sha256": "864f0d74939ba7f485afc4e4e01badc779f38cb9d1433c12b12ade8fcef80a0e"
+    },
+    {
+      "path": "FLICS/12F.TXT",
+      "size": 499,
+      "sha256": "c6dd6284d1c21a53e0c935493b41a764eb2224dabb71180df5dcb82eb9299d4b"
+    },
+    {
+      "path": "FLICS/12G.AVI",
+      "size": 1835008,
+      "sha256": "f02058cacc40962f084c6515ba85fcbcb3037d8aeb924af63d4a8647c4693dbd"
+    },
+    {
+      "path": "FLICS/12G.TXT",
+      "size": 447,
+      "sha256": "bff8cd4eabf1eaeeedd033255f7eceae2f92478a72dd459ce53e049a2c08edde"
+    },
+    {
+      "path": "FLICS/13A.AVI",
+      "size": 2103808,
+      "sha256": "15baea3c2949bf54eb23a68e41dbdbf3f599e7afcbe41d1386c43e2d947fb99a"
+    },
+    {
+      "path": "FLICS/13A.TXT",
+      "size": 397,
+      "sha256": "fa706757fbfdbe9793f31d9baed45ddbcd4037f4e472f79cfed76849a7a619d4"
+    },
+    {
+      "path": "FLICS/13C.AVI",
+      "size": 1986560,
+      "sha256": "5999f6aebec89645b4e54aeaf1be653e2f5a756034b4898a82ec4199d5d3cbd0"
+    },
+    {
+      "path": "FLICS/13C.TXT",
+      "size": 445,
+      "sha256": "8fdb5b66dc0a2d320ca7e5b6e2579eff24c3f6536e51aa81f0d2fbb44dcfe5b0"
+    },
+    {
+      "path": "FLICS/13D.AVI",
+      "size": 7369216,
+      "sha256": "d75a4fd0cf6b3d797dc2619320ced77ef5a3b4b1929a774cb6857713643f5a38"
+    },
+    {
+      "path": "FLICS/13D.TXT",
+      "size": 983,
+      "sha256": "7f8f4980fdbb8377d8e5e90cce1b827f9c412e64a0a5bef61132d86e20a75270"
+    },
+    {
+      "path": "FLICS/13E.AVI",
+      "size": 1643008,
+      "sha256": "4a7fbfd54bfb6890a330ec59a6d7c2dfbcf6ae4f393fb6b67633634cd8e9cf8f"
+    },
+    {
+      "path": "FLICS/13E.TXT",
+      "size": 264,
+      "sha256": "964840cd262d6b0f50f4cd742a8af572fea1754b34f062bef3681ef554ec9e3d"
+    },
+    {
+      "path": "FLICS/13F.AVI",
+      "size": 833536,
+      "sha256": "60b7c9f0421790136450bf5b3c065d5d6e9bbc7b98af4b66c886765cd4ac560f"
+    },
+    {
+      "path": "FLICS/13F.TXT",
+      "size": 149,
+      "sha256": "e546aa621eeac4fe7bd167f5d8967b963eb76bdca31ddf48afe35f355e2eb7f4"
+    },
+    {
+      "path": "FLICS/14A.AVI",
+      "size": 3767296,
+      "sha256": "743d44fefeb22153b9e1017329492e1a163e40b52637c979fb7c17358181387c"
+    },
+    {
+      "path": "FLICS/14A.TXT",
+      "size": 941,
+      "sha256": "25b727e5de019757300e13674b4f91ee3b323cc116a5dfc943a86375973e9d55"
+    },
+    {
+      "path": "FLICS/14B.AVI",
+      "size": 4516352,
+      "sha256": "77c22323e187abb2f945b34463ef69b4ddd4b6d366c5db2f68536540de9f904b"
+    },
+    {
+      "path": "FLICS/14B.TXT",
+      "size": 721,
+      "sha256": "6b389b91bce3a3f66f0582d08e7fcb36d98525ba0688ca2526ebf825959ff0ff"
+    },
+    {
+      "path": "FLICS/14D.AVI",
+      "size": 3024384,
+      "sha256": "09dfdcd54c4652ae0129f3a7e179230a8b99fbaae9fff45fbb89774dabb10131"
+    },
+    {
+      "path": "FLICS/14D.TXT",
+      "size": 533,
+      "sha256": "27d10c4934875457dc2e2a93e0517bb27b7eb81fd453f8779f19a01e5f6543bb"
+    },
+    {
+      "path": "FLICS/14E.AVI",
+      "size": 3729408,
+      "sha256": "40eadc3691f8db457564523efe4cd568b22ea50956ab8ce900a490d632e8b2dc"
+    },
+    {
+      "path": "FLICS/14E.TXT",
+      "size": 466,
+      "sha256": "589c4331a627132381ea7a1f0ad62415545facc145c8bd377402c392e10a2bfd"
+    },
+    {
+      "path": "FLICS/15A.AVI",
+      "size": 4303360,
+      "sha256": "9ed3e313cc466cc6ccfd4753992e5949f4197cc68df72e8fdffcbab7e4b9a14b"
+    },
+    {
+      "path": "FLICS/15A.TXT",
+      "size": 1338,
+      "sha256": "f1aa824c67263382e1ab0cbaced1ca2288289f7944ac091e401354b45d9b8fca"
+    },
+    {
+      "path": "FLICS/15B.AVI",
+      "size": 1926144,
+      "sha256": "1d0830775cd100acc576ee524ba6ad23703a040356626be23abe75ec3126ce93"
+    },
+    {
+      "path": "FLICS/15B.TXT",
+      "size": 337,
+      "sha256": "6e19bf3272c65f25b0a6dbfaeac13e91a37622715146a4b642307465cecbd1be"
+    },
+    {
+      "path": "FLICS/15C.AVI",
+      "size": 1708544,
+      "sha256": "fe3bf2dff32cb56ba61c9e0793599be0d03438c178f15a230c2af18df1bfa234"
+    },
+    {
+      "path": "FLICS/15C.TXT",
+      "size": 302,
+      "sha256": "945a56292628cd2c17b3e3c180013f5e14b98d8bc168b621f339c69a87681197"
+    },
+    {
+      "path": "FLICS/15D.AVI",
+      "size": 5828096,
+      "sha256": "14bfddf584ea7efc8d2e9b00fa3a6000eca7904be100edfbeaa4e3c261539912"
+    },
+    {
+      "path": "FLICS/15D.TXT",
+      "size": 716,
+      "sha256": "39a8e9708c03a794ea1dcc647759eea3b80d234bd000db11fafb3597d2c507d6"
+    },
+    {
+      "path": "FLICS/15E.AVI",
+      "size": 6916608,
+      "sha256": "95159a4a71d53e0f300cab0996cef0d3fd78f40750e513b04b4df3d7025f11b9"
+    },
+    {
+      "path": "FLICS/15E.TXT",
+      "size": 608,
+      "sha256": "3a1436a572e2aec748a2ec6bdfd5ad99743f8b405722db51b11507bc43f966db"
+    },
+    {
+      "path": "FLICS/16A.AVI",
+      "size": 2863616,
+      "sha256": "a3a4dbd6f6d27f2a84dd2d663ab2b702a77d35c041852556e9a0b7730cdc3ce2"
+    },
+    {
+      "path": "FLICS/17A.AVI",
+      "size": 5854720,
+      "sha256": "aa73f3d8aa934a0b1395674435992932a1e3bbd44f14ec9dc4e2042d67994c30"
+    },
+    {
+      "path": "FLICS/17A.TXT",
+      "size": 460,
+      "sha256": "3b6af6030decb39eb2105613bf48904715d41be82a0f9de8d7deebdf3a8f2eef"
+    },
+    {
+      "path": "FLICS/18A.AVI",
+      "size": 1671168,
+      "sha256": "b8b6eb87bb9e1291908a496955a42e7bfeca5077455fe8343dbf610551c5d310"
+    },
+    {
+      "path": "FLICS/18A.TXT",
+      "size": 318,
+      "sha256": "6c2122936c3d855e81f971572e4906f345056acd2d53db95f0806727365bf8ca"
+    },
+    {
+      "path": "FLICS/18B.AVI",
+      "size": 3555328,
+      "sha256": "f2bd4eab05beedafe3a82862fd799ee3dc427fd872bd478160c5b2ff17f60546"
+    },
+    {
+      "path": "FLICS/18B.TXT",
+      "size": 310,
+      "sha256": "23c79383976e9c6bb1d10b4eb6b2a49eed9533df544d2915b9ef1eec10ac48e3"
+    },
+    {
+      "path": "FLICS/18C.AVI",
+      "size": 6400000,
+      "sha256": "a81430b43499109ec886f45173531ef4e3e1b2bf501214d5c06919831d839558"
+    },
+    {
+      "path": "FLICS/18C.TXT",
+      "size": 448,
+      "sha256": "1cfa0dadd47e5753176eaabc254beed9407a541c573b8472f8185fb8d8980d1b"
+    },
+    {
+      "path": "FLICS/18D.AVI",
+      "size": 4930560,
+      "sha256": "2e557cb70d66256da0760f5a9587812dbdcf7af9f7a941c4d779829a4dcb054b"
+    },
+    {
+      "path": "FLICS/18D.TXT",
+      "size": 392,
+      "sha256": "3d21f812b23514ee7b7077945be67fe523bc6d9b3395c349755a417408568cfa"
+    },
+    {
+      "path": "FLICS/18E.AVI",
+      "size": 4739584,
+      "sha256": "aaf3086f61834ead166a11a578bdc88ab4dd0d23c2bd05ce7532e427aaed8b7e"
+    },
+    {
+      "path": "FLICS/18E.TXT",
+      "size": 372,
+      "sha256": "6d992461f4bb6e9d9393c2094541f3038a981e02beecb6663871eb4795fb20ae"
+    },
+    {
+      "path": "FLICS/18F.AVI",
+      "size": 3048448,
+      "sha256": "9f0f53f5971c3538688a55fbabb0c3c8fc578970f6e923e4642f73376d6bacc6"
+    },
+    {
+      "path": "FLICS/18F.TXT",
+      "size": 370,
+      "sha256": "28c16844500f8b4cd6136bca1aa708436568ab746dfb45e2759ae675752a7fa9"
+    },
+    {
+      "path": "FLICS/19A.AVI",
+      "size": 1849856,
+      "sha256": "001939a1bbec8fd0450381b8962231e3589e095cb05f79c31d7ceb8c7abc942d"
+    },
+    {
+      "path": "FLICS/19A.TXT",
+      "size": 189,
+      "sha256": "d3c245d2675daaddbd7b70e6889a0f8bb5c08157069ae18029c78d9e9ea38a01"
+    },
+    {
+      "path": "FLICS/19B.AVI",
+      "size": 2831360,
+      "sha256": "87330bd8bb393495b24b6afe43df6c4675cf88121fbc9dce6be5327d3b278907"
+    },
+    {
+      "path": "FLICS/19B.TXT",
+      "size": 249,
+      "sha256": "43580ce520e366a252a54eef28441adb8bf39ce82d950a4c6a0f5bd2749d0e09"
+    },
+    {
+      "path": "FLICS/19C.AVI",
+      "size": 2696704,
+      "sha256": "fa50c9bc3d344ede195bdef2260447d8e97b8b9d8ed809c443b6061e5321af10"
+    },
+    {
+      "path": "FLICS/19C.TXT",
+      "size": 240,
+      "sha256": "d73cd2462314f6208c442d70b0d0c69fef3a45c1f352ff771c0bfbf088c3862e"
+    },
+    {
+      "path": "FLICS/19D.AVI",
+      "size": 4193792,
+      "sha256": "97faa27fef124cb1e56f0abd4ab2e9da6ca17b4b9a4a3bb6a7881da74ea2cb2a"
+    },
+    {
+      "path": "FLICS/19D.TXT",
+      "size": 351,
+      "sha256": "37ba6a1a1bd663df596ecc715354ddfdaaf5b939a0ba8411e0f538e978e360d2"
+    },
+    {
+      "path": "FLICS/19E.AVI",
+      "size": 976384,
+      "sha256": "81d19ac03755c5fc0c62cc1ee1ca9a5e9d77efafc315bf51e5afb4e4b764c432"
+    },
+    {
+      "path": "FLICS/19E.TXT",
+      "size": 118,
+      "sha256": "d722b68f7b76d0fc54758970255554e81a7b53a8ffe448ab157025a6ca6afb4f"
+    },
+    {
+      "path": "FLICS/20A.AVI",
+      "size": 5074432,
+      "sha256": "b0482a003519e4a6d37702f86ffdd249c36718c01f81dfe39a3035311a118193"
+    },
+    {
+      "path": "FLICS/20A.TXT",
+      "size": 254,
+      "sha256": "b4e55f101ea238a3419f498029cf70fab5e919c76bd4403acec3335cd9c0b599"
+    },
+    {
+      "path": "FLICS/20B.AVI",
+      "size": 3067392,
+      "sha256": "d7bff4d1ca5f5b09da2c2ab09df43aad0cfd9943e4f8937b874a1719abbb99ba"
+    },
+    {
+      "path": "FLICS/20B.TXT",
+      "size": 240,
+      "sha256": "45cd5db17256aa01869c4bb138833d00310f5c147f5e9b9c4e008b8a7288e792"
+    },
+    {
+      "path": "FLICS/20C.AVI",
+      "size": 2617856,
+      "sha256": "fac4e32cfd3ebafea4ec7c073d42526f0ffa2f52f7541b7a7b7d86dad0cc2d79"
+    },
+    {
+      "path": "FLICS/20C.TXT",
+      "size": 274,
+      "sha256": "667e114712876ca39b1b4816de9f632c6703b6ad24e274a67a4b0b8a98416cf1"
+    },
+    {
+      "path": "FLICS/20D.AVI",
+      "size": 4729856,
+      "sha256": "fdf95f9fa8b93fb408dd442f38d8cc3c98ed24d96d7334c1f60447f551718295"
+    },
+    {
+      "path": "FLICS/20D.TXT",
+      "size": 326,
+      "sha256": "fe4576726183af34d659d0f81d21b8e5785f4cb0454335c5d3a2f3b2635087ce"
+    },
+    {
+      "path": "FLICS/21A.AVI",
+      "size": 1644544,
+      "sha256": "75dd90ad01ce62257849303fc56f5bc9624a6b0ea0a9bc392904dda5f68a76b5"
+    },
+    {
+      "path": "FLICS/21A.TXT",
+      "size": 90,
+      "sha256": "3639e2de481beb443602e867708f1d5d88539ef9eff69e7303a465650b0f889b"
+    },
+    {
+      "path": "FLICS/21B.AVI",
+      "size": 2094080,
+      "sha256": "a80d29eee6111fb4289ee617b4a27da629c84b68802e955087f1b7f1494b5461"
+    },
+    {
+      "path": "FLICS/21B.TXT",
+      "size": 154,
+      "sha256": "f72bbd5490bf351623dbe4d9e7e7bb74a461c793e4f011b47e3c4a4f648578e6"
+    },
+    {
+      "path": "FLICS/21C.AVI",
+      "size": 1930752,
+      "sha256": "9993f1da723c36c98769a32a2549f9f30e45aada4eaa72183546253a09442dd7"
+    },
+    {
+      "path": "FLICS/21C.TXT",
+      "size": 186,
+      "sha256": "4fec73c9830f883de80ea8e6fb6ac2a485d5965c2d52a82c72e57aeda8a25698"
+    },
+    {
+      "path": "FLICS/21D.AVI",
+      "size": 2828288,
+      "sha256": "62bf548b3205f442ca677dd67aaa56e81a88a2a1673737412e8fb0a6767b9f27"
+    },
+    {
+      "path": "FLICS/21D.TXT",
+      "size": 216,
+      "sha256": "3a8376cd33d5dbc757f49fb4dfc01dd9981822cee44f2595b5fc1e3f39b0ff13"
+    },
+    {
+      "path": "FLICS/21E.AVI",
+      "size": 3536384,
+      "sha256": "7771c98e70374acaf265fa69b602a9981312e724e1efc3a1d9d4ee7601124f2f"
+    },
+    {
+      "path": "FLICS/21E.TXT",
+      "size": 271,
+      "sha256": "16a39a8ed63879eb07f120bfe38b6d724c0688b7dc8cb278274dcf09f567d332"
+    },
+    {
+      "path": "FLICS/21F.AVI",
+      "size": 1659392,
+      "sha256": "9c4821ae6fdf077940e48363aca3105a660af6944104b3d3189a57126882a006"
+    },
+    {
+      "path": "FLICS/21F.TXT",
+      "size": 139,
+      "sha256": "496fcd2e49572f577a955ccfeeeeca0fffd87a69ddffcd3ed18358873d34f5d6"
+    },
+    {
+      "path": "FLICS/B01.AVI",
+      "size": 6452224,
+      "sha256": "6e52cb00871750fe00c08a75cb0c63fe92110ce9245f567053eae93902843860"
+    },
+    {
+      "path": "FLICS/H01.AVI",
+      "size": 296448,
+      "sha256": "9b5c9d04db44fbe14d7d6e07f3fe63c55c4ebc4b3afcd164a50fb29656ee0291"
+    },
+    {
+      "path": "FLICS/H01.TXT",
+      "size": 56,
+      "sha256": "7e1a6dd3b581436838a3251c3a3ff7dbdeafd484ad4979597c8faf6edc4dc1d6"
+    },
+    {
+      "path": "FLICS/MVA01.AVI",
+      "size": 461824,
+      "sha256": "39f1297c3eb23bd46830c9283bd079d4c278853b02f51c487789ae0ce02371b5"
+    },
+    {
+      "path": "FLICS/MVA03A.AVI",
+      "size": 197120,
+      "sha256": "8443f796a482d4855911f8c3eb97a879a6100da44d1ab597a9baf3c47f047bba"
+    },
+    {
+      "path": "FLICS/MVA03B.AVI",
+      "size": 453632,
+      "sha256": "610c17ac80c9642123d063bbdbbd895e0e74322bad9dab27e00b5c76816655f9"
+    },
+    {
+      "path": "FLICS/MVA04.AVI",
+      "size": 151552,
+      "sha256": "ff2800aa5b1136ea90e6de010c9dca896e4fe4b270467753383056bcdf9cef17"
+    },
+    {
+      "path": "FLICS/MVA05A.AVI",
+      "size": 347648,
+      "sha256": "377f24a0d678f55213374a588490df6ae3c0da039e9369b3ac4fd63492c36917"
+    },
+    {
+      "path": "FLICS/MVA05B.AVI",
+      "size": 426496,
+      "sha256": "373016946315097632a72a40ec4b0af8f3344f5324ef8cac896e9edb43a7eb50"
+    },
+    {
+      "path": "FLICS/MVA06.AVI",
+      "size": 50688,
+      "sha256": "d321061f13de2140ad6862189561275007ee3b192e2f89e2c40520b1c669bbd8"
+    },
+    {
+      "path": "FLICS/MVA07.AVI",
+      "size": 222208,
+      "sha256": "1a56ad2f56b1c70e9928f40ccae1253733c4e98f451ed3f6e6b3a84b1056fb2d"
+    },
+    {
+      "path": "FLICS/MVA08.AVI",
+      "size": 65536,
+      "sha256": "3637cab910fbf095ee48211ad365b21ffa57f8185bbefec3db276d3416d6bfc6"
+    },
+    {
+      "path": "FLICS/MVA09.AVI",
+      "size": 44032,
+      "sha256": "e7a4e7a63b6fb654ba85554e6f214a733bc2444d42f8dea6629b004dbdb546b5"
+    },
+    {
+      "path": "FLICS/MVA10.AVI",
+      "size": 27136,
+      "sha256": "4ec1434eafa2b7736c53649d107486166fb495201a1bccddd3300ae2ca78c3e7"
+    },
+    {
+      "path": "FLICS/MVA11A.AVI",
+      "size": 190976,
+      "sha256": "7c5d09dccee1133a7279b61a98aca5a7880464fcdc79bb361a6c31bbc885ff27"
+    },
+    {
+      "path": "FLICS/MVA11B.AVI",
+      "size": 163840,
+      "sha256": "22177cf019ddbc6cc286b88a2d7226ff9a7fcf37bcb22dac2e9ed88e8afedb7a"
+    },
+    {
+      "path": "FLICS/MVA12A.AVI",
+      "size": 208896,
+      "sha256": "a21bbe2e0919ecb9ba39812197809f4b49248a50fc922638f501b0628ac6c642"
+    },
+    {
+      "path": "FLICS/MVA12B.AVI",
+      "size": 387584,
+      "sha256": "42fe7bfe8486dd538a602fb8ce69630ed8cebf520bb3fc2bb4f4b8328feea3f5"
+    },
+    {
+      "path": "FLICS/MVA13.AVI",
+      "size": 61952,
+      "sha256": "0d2f656838b268418aadd3f58faa2074d1042a745cf3807a7ed69ffa232c96f7"
+    },
+    {
+      "path": "FLICS/MVA14.AVI",
+      "size": 198656,
+      "sha256": "f8d6b3356b206e68c0af28fb3227cd44f47c888ed329fb93dc594d1efd8417bb"
+    },
+    {
+      "path": "FLICS/MVA15A.AVI",
+      "size": 216576,
+      "sha256": "076b5cf24f059d9a34d402b0c4a21019f952a22331826adf96025bfc7f4305da"
+    },
+    {
+      "path": "FLICS/MVA15B.AVI",
+      "size": 243200,
+      "sha256": "2e2569647250dcf50318ea6fea09bcbb10623328061dafd767660eae1eb59e6f"
+    },
+    {
+      "path": "FLICS/MVA15C.AVI",
+      "size": 495104,
+      "sha256": "263523829f3892dabbef739ced43887f90edbd280827618d53eefe0ff55e9f00"
+    },
+    {
+      "path": "FLICS/O01.AVI",
+      "size": 10287616,
+      "sha256": "f40ecbea72f58d7c994d4b0b9c13adfb1f2ff450b3c5b573edd6c547dbb71c5a"
+    },
+    {
+      "path": "FLICS/O01.TXT",
+      "size": 642,
+      "sha256": "e6d8ee57c133e90ee57a5d7ff58c1471a7fcc390097719353dde9fe622c1a6a4"
+    },
+    {
+      "path": "FLICS/O02.AVI",
+      "size": 2852864,
+      "sha256": "70ba24bb089f3eec77b0580d4880b3de6e5e574b9f663483e8192d585f4a3258"
+    },
+    {
+      "path": "FLICS/R01.AVI",
+      "size": 5252608,
+      "sha256": "3da510288bbb8c75d58285d600fd8eaa720a67e70ba644dfb1a05495ebc87a89"
+    },
+    {
+      "path": "FLICS/S01.AVI",
+      "size": 9585152,
+      "sha256": "ec8a48d42d01797c719d0c4ded0d643491702ca6028d61764d1aa6cbbe6dca05"
+    },
+    {
+      "path": "FLICS/T01.AVI",
+      "size": 4405760,
+      "sha256": "bfa1d83412eaac7b2ff715b8a0d7bf91ccbbba45250fc7e916389a59075f9deb"
+    },
+    {
+      "path": "FLICS/T02.AVI",
+      "size": 16483840,
+      "sha256": "6fa052e0349c9b70776df0363235a2a27d3f3e09b20badf52ea19f2999ab58e5"
+    },
+    {
+      "path": "FLICS/T02.TXT",
+      "size": 832,
+      "sha256": "3fb074fae87eb7225fac794d50e1e337fc32a5fd0227a3db59193ae5b8ea2147"
+    },
+    {
+      "path": "FLICS/WEC.AVI",
+      "size": 7221760,
+      "sha256": "c0d54444a71a0e5bc970f3289e7ef6fa4d2ffcc55e9e0f1411b724c45b29f621"
+    },
+    {
+      "path": "FLICS/Z01.AVI",
+      "size": 306176,
+      "sha256": "c7ac0bb726b50682f80069ac2a2f43ef2962b334c11b898cdc87c0799ddc638a"
+    },
+    {
+      "path": "FLICS/Z01.TXT",
+      "size": 79,
+      "sha256": "556f347c159db68ad63c294d91aae121955c283d4d8087467800958cf0cb4dbd"
+    },
+    {
+      "path": "FLICS/Z02.AVI",
+      "size": 248320,
+      "sha256": "39b8f1e03dc9f26806383862bd0df25f6add9bd28e9dd3d0a866adc9c555bc86"
+    },
+    {
+      "path": "FLICS/Z02.TXT",
+      "size": 53,
+      "sha256": "6b72462df94cdcfdc448db568cef4c49ceecf2c5af08861f1275c3174c7eb13b"
+    },
+    {
+      "path": "FLICS/Z03.AVI",
+      "size": 3591168,
+      "sha256": "dd467e0e2cb2af277b48ae712498dd16bdf8f7bbf904fe5a8457a451762caa49"
+    },
+    {
+      "path": "FLICS/Z03.TXT",
+      "size": 8,
+      "sha256": "414ee5e61d24f79d3e0b9b1e1fade0f5a6b2ddcc5f673764e779e0d84a1879a8"
+    },
+    {
+      "path": "IDATA/FONTS.DAT",
+      "size": 25897,
+      "sha256": "2b3c44cd0197a04de5858deaa3948d77926e571811c9a99802557ce5debf0a45"
+    },
+    {
+      "path": "IDATA/ICONS.DAT",
+      "size": 975,
+      "sha256": "e5574f8c099ca0c7d6a1a8d71f3a98b7aadb3e782e7d32b7bdba289406e482ca"
+    },
+    {
+      "path": "IDATA/MOUSE.SHP",
+      "size": 15179,
+      "sha256": "ec8dfa2d18a090f8e64026ee5524436f7a2a9ab92595af077403b49fe77b5f5f"
+    },
+    {
+      "path": "IDATA/MUSIC.AMF",
+      "size": 251078,
+      "sha256": "117b025dfdd92370ea1b4a7cfa302ffeb801ed5e0e90c1694e70a974f8d12ace"
+    },
+    {
+      "path": "IDATA/PALETTE.DAT",
+      "size": 768,
+      "sha256": "892a7cf5ff463bc439c87d7c9841ef5428607024cfcccb4d680c0b26c5f54791"
+    },
+    {
+      "path": "SOUND/CRED.AMF",
+      "size": 337076,
+      "sha256": "030784f3f4dea3c47d0e9d320a8b1aef6c9a7bad25c3673f0a0fbec35fa5d273"
+    },
+    {
+      "path": "SOUND/M01.AMF",
+      "size": 368770,
+      "sha256": "b2ffe63f9f0a535f82656d4b51be63f701f2f6c8f5024ba087d8bd98a6b0129f"
+    },
+    {
+      "path": "SOUND/M02.AMF",
+      "size": 199228,
+      "sha256": "d6542cca1d38261efe2c6d13dc21c8d945d86bbf8e31e8313a649f902fe65686"
+    },
+    {
+      "path": "SOUND/M03.AMF",
+      "size": 294088,
+      "sha256": "df7dc541b80c8264c0fab1574c5661e4872bd682967e02d07426833fcb7d116f"
+    },
+    {
+      "path": "SOUND/M04.AMF",
+      "size": 247900,
+      "sha256": "7897f0c4da1c51c46d70a05c6fb8d8577bd0a1d3f505317fa47bb4ca0b9c630d"
+    },
+    {
+      "path": "SOUND/M05.AMF",
+      "size": 282446,
+      "sha256": "eab740f3dd1fc864eb82ec09c6d0a9e63578df7a817c287246f9b852e803317d"
+    },
+    {
+      "path": "SOUND/M06.AMF",
+      "size": 82896,
+      "sha256": "293aa8cce6ff8857716df844926b461472083e12a8b391a38084edd3e06a8e53"
+    },
+    {
+      "path": "SOUND/M07.AMF",
+      "size": 149001,
+      "sha256": "28e76d84428f66a7dcc3ca4136a193d92600efa25ca1f2d780179ea7ec96acc5"
+    },
+    {
+      "path": "SOUND/M08.AMF",
+      "size": 143584,
+      "sha256": "67c6168cc4ae6ed546773b97fcf55e292a886048f42625504b30e535811380e2"
+    },
+    {
+      "path": "SOUND/M09.AMF",
+      "size": 347676,
+      "sha256": "c4a9d83d65dfc0b1e30540ed9854e842322bb2c07bc24275621056d099e91f5b"
+    },
+    {
+      "path": "SOUND/M10.AMF",
+      "size": 172090,
+      "sha256": "aeb51235ae0f8d6a40d77c85fc9cc66ad7414d117646770ba4f65ae2b04db2f8"
+    },
+    {
+      "path": "SOUND/M11.AMF",
+      "size": 287020,
+      "sha256": "e367d7e00632c55da3871ee72afc2c69dd8af85dbc3efac374a92ab940b2ada5"
+    },
+    {
+      "path": "SOUND/M12.AMF",
+      "size": 139774,
+      "sha256": "6b9195c2430a55cf600f89b3e8299d191ad36e0aa97e40eb7abc8df17bbffb6b"
+    },
+    {
+      "path": "SOUND/M13.AMF",
+      "size": 338074,
+      "sha256": "326b4bb10c1325cea47f058984da546bfc2edbcb1b59603291fb063cb7b7f48d"
+    },
+    {
+      "path": "SOUND/M14.AMF",
+      "size": 219378,
+      "sha256": "f9843efadfb2029e0ec99d6c8d43ada771d580aa4111ac4366517509a95d1a95"
+    },
+    {
+      "path": "SOUND/M15.AMF",
+      "size": 304862,
+      "sha256": "7f7d55530bf23c287cfde4c10f3fa2b766ac73336c9e937bb72ae653fc0602a9"
+    },
+    {
+      "path": "SOUND/M16A.AMF",
+      "size": 248710,
+      "sha256": "74ec6aad5fdb32c25da46d0fed54d539a4b588142124645ed3ae436cc5ed5a1f"
+    },
+    {
+      "path": "SOUND/M16B.AMF",
+      "size": 208960,
+      "sha256": "f2955ee3a79b1f7256620bb48ff68a9a9e263938077799d38515f11f33cc9364"
+    },
+    {
+      "path": "SOUND/M16C.AMF",
+      "size": 229746,
+      "sha256": "59054faf37ba3e82c54da6aa4feca602997fbd3173955c1e3e675a3c66bc5cde"
+    },
+    {
+      "path": "SOUND/MENU.AMF",
+      "size": 275960,
+      "sha256": "514a06c8fd6d2badaf170065ad70f6a145f80620015f57634b9c6185eebc9418"
+    },
+    {
+      "path": "SOUND/SOUND.FLX",
+      "size": 4504087,
+      "sha256": "b5246731aced2f488252e7ece569f0cbc17d4046725ccd8f7064442371dc03a1"
+    },
+    {
+      "path": "STATIC/ANIM.DAT",
+      "size": 228052,
+      "sha256": "c4c8dfd95228e921b8960c0442919531ffdf4bf81878e34a42d71089703b9758"
+    },
+    {
+      "path": "STATIC/COMBAT.DAT",
+      "size": 1734,
+      "sha256": "c6097a721141a2e66ec6d0cd578427305f28ae9efe8a206bd5cf946ce2075faf"
+    },
+    {
+      "path": "STATIC/CRED.DAT",
+      "size": 308278,
+      "sha256": "46eb60e919f2bd55b99668f97f894c590c149d1e02538d00051c953e0859bd19"
+    },
+    {
+      "path": "STATIC/CRED.PAL",
+      "size": 768,
+      "sha256": "9a6cb47edf8c8f360e9ec8ec8c31e69ff3ea017459a3163b8513f7136564535b"
+    },
+    {
+      "path": "STATIC/CREDITS.DAT",
+      "size": 3527,
+      "sha256": "0c2b7554fd797f58c6bd0c370c60aff0dfceacc4d5d4385ad6822cacf76851fa"
+    },
+    {
+      "path": "STATIC/DAMAGE.FLX",
+      "size": 12424,
+      "sha256": "c2c55e700ae0c3c1337f2d0f31a6b47c091cca23c068f3ee303b1e48a7e09ffd"
+    },
+    {
+      "path": "STATIC/DIFF.PAL",
+      "size": 768,
+      "sha256": "e298653918cc56804f69d3fca6e3e80aca27598b01b785ada9a3c1c5967fa9a1"
+    },
+    {
+      "path": "STATIC/DTABLE.FLX",
+      "size": 11520,
+      "sha256": "ee7d9816e50007eb35a16956ce7a73e4a170fa582939314431b48be6600ecebc"
+    },
+    {
+      "path": "STATIC/FIXED.DAT",
+      "size": 3735392,
+      "sha256": "e19fb47b11d6bb36cd101d654d609f3a20899fb737a727478f32ba18955594ce"
+    },
+    {
+      "path": "STATIC/FONTS.FLX",
+      "size": 198862,
+      "sha256": "db811c7d7f538f4a264223267c0b9777ef46a6f27ed38a2e06248175e66883e3"
+    },
+    {
+      "path": "STATIC/GAMEPAL.PAL",
+      "size": 768,
+      "sha256": "892a7cf5ff463bc439c87d7c9841ef5428607024cfcccb4d680c0b26c5f54791"
+    },
+    {
+      "path": "STATIC/GLOB.FLX",
+      "size": 264974,
+      "sha256": "8d2785197731c7926c5699df44b3369acb10a06f4f02cda26788858fe0e2921f"
+    },
+    {
+      "path": "STATIC/GUMPS.FLX",
+      "size": 501404,
+      "sha256": "81561d76f6531e77bb4a2dfbf9ed05b4d679f5ba0bd67c7859806a4bc50c558c"
+    },
+    {
+      "path": "STATIC/HELP1.DAT",
+      "size": 308278,
+      "sha256": "55e6cf5f4c7c9a822b1da67548d4ddc4956df12f8a98399d994c348f4ea69083"
+    },
+    {
+      "path": "STATIC/HELP2.DAT",
+      "size": 308278,
+      "sha256": "acdeacf3e157e6598de966f26fc352654f0216a79ce0e95a24eba33f9bb0b4e7"
+    },
+    {
+      "path": "STATIC/HELP3.DAT",
+      "size": 308280,
+      "sha256": "90662262925119b35864e62857fe477577583c10b9bc6aa6b552535b52df7e8e"
+    },
+    {
+      "path": "STATIC/MISC.PAL",
+      "size": 768,
+      "sha256": "c1ac257e465b8478aa3d25920cf21d638d6b58d5e941be679c0ffa504c9fd534"
+    },
+    {
+      "path": "STATIC/MISC2.PAL",
+      "size": 768,
+      "sha256": "e298653918cc56804f69d3fca6e3e80aca27598b01b785ada9a3c1c5967fa9a1"
+    },
+    {
+      "path": "STATIC/MOUSE.SHP",
+      "size": 15617,
+      "sha256": "a9c9a2fccad4618a698f6b4c44d9b7780f78a01823a120a351409f8c3073a478"
+    },
+    {
+      "path": "STATIC/SHAPES.FLX",
+      "size": 42218623,
+      "sha256": "cc92afee3d7f38649efdff5f3540d057901ff48766dc5a9cc2d24aa9bb36e5d6"
+    },
+    {
+      "path": "STATIC/STAR.PAL",
+      "size": 768,
+      "sha256": "6657460157362283f2549966886504b170869f2f40b7ecd58eb65e1de10bc126"
+    },
+    {
+      "path": "STATIC/STUFF.DAT",
+      "size": 9660,
+      "sha256": "ecfeeab8e295d95c3a0a9bb5954781a0909f9f79ae33dd8fbffff36432c87d24"
+    },
+    {
+      "path": "STATIC/TRIG.DAT",
+      "size": 3072,
+      "sha256": "39fe7db07038aafd86c7f3bf2fbe158cd231826e7b06f988aaba59759b7607e3"
+    },
+    {
+      "path": "STATIC/TYPEFLAG.DAT",
+      "size": 18432,
+      "sha256": "b25206bb6b05ce4ba8e212ff7fffa9adfe5ac08a2d34a666a202a33f1cecc246"
+    },
+    {
+      "path": "STATIC/WPNOVLAY.DAT",
+      "size": 154360,
+      "sha256": "1bc0250941e27e46906e4f8a251d26ca661eb2abf46f9ead2e9b3bf513806637"
+    },
+    {
+      "path": "STATIC/XFORMPAL.DAT",
+      "size": 2480,
+      "sha256": "b751f82beea03ef8bfe5d44764a052232e747a77066b6588e264a77d4b5f22b0"
+    },
+    {
+      "path": "USECODE/EUSECODE.FLX",
+      "size": 556613,
+      "sha256": "1e1bb254c921d9d34189baa50e93f931e593242419fc968bcbea154857bf43c3"
+    },
+    {
+      "path": "USECODE/OVERLOAD.DAT",
+      "size": 39936,
+      "sha256": "641c73e3f88ce5967218c21038a08f0aa92de98418b87a21b56184ab8193e4c3"
+    },
+    {
+      "path": "USECODE/UNKCOFF.DAT",
+      "size": 1244,
+      "sha256": "2267e6b4403312696aad59f7d09b0c1d4fb35294fac53c790393900b1be8bc5e"
+    },
+    {
+      "path": "USECODE/UNKDS.DAT",
+      "size": 66,
+      "sha256": "a42d9d8722cf07e80a36bfd65ee68749b68e23c5b50d9351de0f83ee97a94b91"
+    }
+  ]
+}
