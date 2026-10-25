@@ -18,7 +18,7 @@ def source_directory(workspace):
     return expanded if (expanded / "configure").is_file() else workspace / "vendor/scummvm"
 
 
-def stage(workspace):
+def stage(workspace=ROOT):
     workspace = Path(workspace).resolve()
     source = source_directory(workspace)
     binary = workspace / "build/scummvm/scummvm"
@@ -67,6 +67,6 @@ exec "$CRUSADER_ENGINE_DIR/bin/scummvm.bin" "$@"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("workspace", type=Path)
+    parser.add_argument("workspace", type=Path, nargs="?", default=ROOT)
     args = parser.parse_args()
     print(json.dumps(stage(args.workspace), indent=2))

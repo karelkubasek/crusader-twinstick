@@ -57,16 +57,22 @@ The runtime is generated under `runtime-engine/` and is deliberately ignored
 by Git. The complete engine patch is under `patches/`, pinned to ScummVM commit
 `a822b48a2ddd1bcdf742935f89ee94942e49539b`.
 
-To stage the verified engine from the existing development workspace:
+Build and stage the engine inside this repository:
 
 ```sh
-python3 scripts/stage_runtime.py /path/to/crusader
+./scripts/build_engine.sh
+python3 scripts/stage_runtime.py
 ```
 
 This checks the source revision and patch before copying the executable and
 its ScummVM support resources. It does not copy commercial game data.
 A source checkout without a staged runtime can display the UI and import data,
 but cannot play until the runtime has been built or supplied.
+
+Engine sources live in ignored `vendor/scummvm/` and builds in ignored
+`build/scummvm/`. See [testing instructions](docs/TESTING.md) for native tests,
+controller/gameplay probes, and the portable release smoke test. Private game
+data, installers and save fixtures stay in ignored local directories.
 
 ## Portable artifacts
 

@@ -11,7 +11,7 @@ Make, pkgconf, SDL2-compat/SDL3, libpng and FreeType. On this SteamOS machine:
 brew install gcc glibc make pkgconf sdl2-compat libpng freetype patchelf innoextract
 brew postinstall gcc
 ./scripts/build_engine.sh
-python3 scripts/stage_runtime.py .
+python3 scripts/stage_runtime.py
 /usr/bin/python3 -m unittest discover -s tests -v
 ```
 
@@ -28,11 +28,13 @@ It copies no Crusader resources.
 To produce the portable Linux x86_64 distribution and matching source archive:
 
 ```sh
-/usr/bin/python3 scripts/build_portable.py /path/to/development/workspace
+/usr/bin/python3 scripts/build_portable.py
 ```
 
-The development workspace contains the Git checkout under `vendor/scummvm`
-and `build/scummvm/scummvm`. This builder currently runs on the
+The workspace defaults to this repository, with the Git checkout under
+`vendor/scummvm` and the executable at `build/scummvm/scummvm`. An optional
+workspace argument supports a separate build;
+no neighboring project directory is required. This builder currently runs on the
 verified SteamOS/Homebrew development host. It collects Python/Tk, SDL, the
 import tools and their native dependencies, removes host-specific ELF paths
 with patchelf, records exact components, gathers notices and downloads verified
@@ -54,3 +56,5 @@ The portable runtime is verified on this host and by launching from a moved
 folder with a clean environment. Additional Linux distributions and Steam Deck
 Gaming Mode still need release testing. Packaging does not establish wider
 platform compatibility by itself.
+
+See [TESTING.md](TESTING.md) for the native suite and private gameplay fixtures.

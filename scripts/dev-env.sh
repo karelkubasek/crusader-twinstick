@@ -1,4 +1,4 @@
-# Source this file from Bash: source ./dev-env.sh
+# Source this file from Bash: source ./scripts/dev-env.sh
 # Keep compiler aliases within this workspace; leave the system compiler alone.
 CRUSADER_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 CRUSADER_BREW_PREFIX="$(brew --prefix)"
