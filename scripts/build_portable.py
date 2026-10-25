@@ -24,7 +24,7 @@ from scripts.stage_runtime import BASE, stage
 
 SYSTEM_LIBS = {"libc.so.6", "libm.so.6", "libdl.so.2", "libpthread.so.0", "librt.so.1", "libresolv.so.2",
                "ld-linux-x86-64.so.2", "ld.so"}
-SOURCE_DIRS = {"modern": {".py"}, "assets": {".svg", ".json"}, "scripts": {".py", ".sh"},
+SOURCE_DIRS = {"modern": {".py"}, "assets": {".svg", ".json"}, "scripts": {".py", ".sh", ".c", ".cpp"},
                "patches": {".patch"}, "docs": {".md"}, "tests": {".py"}, "licenses": None}
 SOURCE_FILES = ("README.md", "NOTICE.md", "LICENSE", ".gitignore", ".gitattributes", "start.sh")
 
@@ -272,7 +272,7 @@ def make_source_archive(workspace, target, sources):
             archive.add(staging, arcname=staging.name)
 
 
-def build(workspace):
+def build(workspace=ROOT):
     workspace = Path(workspace).resolve()
     stage(workspace)
     (ROOT / "build/source-downloads").mkdir(parents=True, exist_ok=True)
@@ -338,5 +338,5 @@ def build(workspace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("workspace", type=Path)
+    parser.add_argument("workspace", type=Path, nargs="?", default=ROOT)
     build(parser.parse_args().workspace)
