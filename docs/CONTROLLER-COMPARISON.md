@@ -13,9 +13,10 @@ of that checkout.
 | Menus | Fixed A confirm and B/Start cancel; stick moves the cursor | D-pad selection and A confirmation in the original main/difficulty menus; A/Y skip movies and B/Y cancel menus; mouse controls and ScummVM dialogs remain available |
 | Remapping | Remembers the key sent on press so its matching release survives context changes | ScummVM keymapper plus movement resets on modal input, focus loss and controller changes |
 
-The relevant reference sources are `src/platform/sdl_gamepad.cpp`,
-`src/game/game.cpp`, `src/engine/world/avatar_mover.cpp`, and
-`src/engine/world/aim_mode.cpp`.
+The relevant upstream sources are [the SDL gamepad adapter][ref-gamepad],
+[game orchestration][ref-game], [avatar movement][ref-mover] and
+[aim mode][ref-aim]. Reference file/function names below refer to that pinned
+public source tree, rather than files expected in this checkout.
 
 ## Runtime observations
 
@@ -62,8 +63,9 @@ Those traces measured the physical anchor, not the visible Silencer, and did
 not establish that the walking sprite was smooth.
 The persistent animation probe now checks avatar/camera alignment as well as
 gait cadence; counting changing frames alone cannot catch this regression.
-Private traces, videos and the original save hash remain under ignored
-`runtime/judder-20261026/`.
+The current regression lives in the tracked
+[animation probe](../scripts/probes/probe-twin-animation.py); it does not read
+the private investigation captures.
 
 ### Sprite-origin correction
 
@@ -100,13 +102,19 @@ latest-save capture, that reduced the largest measured horizontal helmet jump
 from about 8.8 to 3.4 native pixels, but still left visible shifts. Registering
 the sprite itself reduced the largest horizontal step to about 2.0 pixels and
 the horizontal range from 12 pixels to about 2 pixels in that capture. The
-persistent animation probe
-now checks actual sprite pixels at the display-list location as well as the
-physical camera anchor. Private captures and traces remain under ignored
-`runtime/judder-native/`. The reusable reference setup now lives separately in
-`runtime/reference-decomp/`; see [the testing guide](TESTING.md#reusable-reference-engine-setup).
-These are Desktop/X11 checks;
-the player's judgement of the resulting movement remains important.
+persistent animation probe now checks actual sprite pixels at the display-list
+location as well as the physical camera anchor. To check the current build,
+prepare the private fixtures described in
+[the testing guide](TESTING.md#private-gameplay-probes), then run:
+
+```sh
+./scripts/test_engine.sh animation
+```
+
+The measurements above describe historical Desktop/X11 captures, which are not
+distributed. The tracked probe reproduces the regression check with player-supplied
+game resources and a suitable save. The player's judgement of the resulting
+movement remains important.
 
 ## Review scope and adoption decisions
 
@@ -133,10 +141,15 @@ instruction is equivalent or that either engine has completed a campaign.
 | Resource import: `core/iso_image.cpp`, `main.cpp` | The reference imports ISO images and supports its documented FR 1.08/US 1.23 data. Our verified GOG importer checks hashes, excludes unrelated files, rejects symlinks, supports cancellation and rolls back failed replacements. Retain that transactional importer; do not relax its supported edition based on the reference's version guesses. |
 | Usecode/physics/gameplay: `engine/usecode/*`, `engine/world/*` | The reference's original addresses and tests are valuable evidence for specific missing behaviors, not proof its whole VM/world is preferable. Intrinsic indices differ by edition: `I_isReleaseBuild` is already bound in our table, and its redraw intrinsic is explicitly a no-op in the reference. No blanket intrinsic renumbering, collision replacement or warning suppression was adopted. |
 | Audio/movies: `engine/audio/*`, `core/avi_movie.cpp`, `movie_player.cpp` | Both use original resources. ScummVM already supplies movie decoding/subtitles, mixing and music state handling. No demonstrated audio/decoder improvement justified replacing these. The startup and mission-movie paths are exercised separately here. |
-| Diagnostics/testing: `tests/*`, `e2e/*`, `src/tools/*` | Built and ran all six unit suites and US data scenarios; kept private captures and harnesses here. Reference save-dependent campaign cases require its DOS-format fixtures, so their existence is not counted as a passed comparison. Its original-address annotations are retained as investigation evidence. |
+| Diagnostics/testing: `tests/*`, `e2e/*`, `src/tools/*` | Built and ran all six unit suites and US data scenarios during the historical comparison. Reference save-dependent campaign cases require its DOS-format fixtures, so their existence is not counted as a passed comparison. Current project checks use the tracked probes and fixture requirements in the testing guide. |
 
 The new changes are independently implemented in this project's ScummVM patch
 and launcher. The reference checkout remains unmodified and is never opened by
 the application or its build scripts. No game data, screenshots or reference
 executables are distributed. Its GPL-3.0-or-later code is license-compatible;
 any future copied implementation should retain its attribution and provenance.
+
+[ref-gamepad]: https://github.com/sebsebseb1982/crusader-no-remorse-decomp/blob/ec7193218f9a0e590916331f02f6c76891f51fa9/src/platform/sdl_gamepad.cpp
+[ref-game]: https://github.com/sebsebseb1982/crusader-no-remorse-decomp/blob/ec7193218f9a0e590916331f02f6c76891f51fa9/src/game/game.cpp
+[ref-mover]: https://github.com/sebsebseb1982/crusader-no-remorse-decomp/blob/ec7193218f9a0e590916331f02f6c76891f51fa9/src/engine/world/avatar_mover.cpp
+[ref-aim]: https://github.com/sebsebseb1982/crusader-no-remorse-decomp/blob/ec7193218f9a0e590916331f02f6c76891f51fa9/src/engine/world/aim_mode.cpp

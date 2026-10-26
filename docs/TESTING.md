@@ -1,57 +1,37 @@
 # Testing
 
-Run all commands from this repository. Source, builds and private test inputs
-live here; a separate development workspace is not required.
+Run all commands from this repository. A fresh checkout contains source and test
+drivers. Build outputs are created by the commands below; game resources,
+installers and save fixtures must come from your own copy. A separate development
+workspace or previous investigation archive is not required.
 
-## Reusing investigation history
+## Inputs and generated files
 
-Start with the relevant source notes and earlier evidence before creating a new
-experiment. Check which save, configuration, source revision and executable an
-old result describes; a historical passing result does not validate the current
-build. Preserve original captures and reports, and give new runs their own output
-directory. Check old scripts' output paths before rerunning them.
+Ignored paths in this guide describe generated outputs or private inputs, rather
+than files supplied with the checkout:
 
-Useful local history includes:
-
-| Location | What it explains |
+| Path | How it is supplied |
 | --- | --- |
-| `docs/CONTROLLER-COMPARISON.md` | Findings, adoption decisions and limits of the reference-engine comparison |
-| `runtime/movement-investigation/` | Initial gait/input comparison, original controller harness and reference results |
-| `runtime/judder-20261026/` | Saved-scene camera investigation, original save hash, before/after traces and captures; the stable-anchor metric missed sprite-origin judder |
-| `runtime/judder-native/` | Subsequent sprite-origin investigation, prototypes, final visual measurements and regression fault injection |
-| `runtime/menu-focus/`, `runtime/difficulty-back/`, `runtime/menu-highlight/` | Native-menu navigation, focus and cancellation checks |
+| `vendor/scummvm/`, `build/scummvm/` | `scripts/build_engine.sh` fetches the pinned engine source and builds it |
+| `build/toolchain-check/` | `scripts/check_toolchain.sh` and `scripts/test_engine.sh` compile the tracked smoke/probe sources |
+| `runtime-engine/` | `scripts/stage_runtime.py` stages the built engine and its support resources |
+| `dist/` | `scripts/build_portable.py` creates the player bundle, matching source and checksums |
+| `runtime/` | The tracked engine and portable test drivers create working configs, fixture copies, logs and reports |
+| `user-data/installation/` | `start.sh --install SOURCE` imports the player's supported game copy |
+| `user-data/test-fixtures/` | The player supplies the save states described below; `--fixtures` accepts another location |
+| `installers/` | An optional location for an owned installer; `--installer` accepts an explicit file elsewhere |
 
-These directories are a manually selected evidence archive. They are not an
-automatically indexed database, and individual old files may be superseded.
+Pure Python and native engine unit tests do not require commercial game data.
+Gameplay probes and the portable smoke flow require the private inputs described
+in their sections. The test drivers create their own output directories.
 
-## Reusable reference-engine setup
-
-The separate decompiled game's local environment lives under ignored
-`runtime/reference-decomp/`, outside individual issue investigations:
-
-```sh
-./runtime/reference-decomp/play.sh
-./runtime/reference-decomp/play.sh --fullscreen
-./runtime/reference-decomp/build-probes.sh
-./runtime/reference-decomp/probe.sh controller walk
-./runtime/reference-decomp/probe.sh silencer holstered
-```
-
-It contains the playable resource/configuration/native-save profile, original
-reference fixtures, reusable probe sources, launch helpers and provenance.
-Executables remain in `build/reference-decomp/`, reached through relative links
-under the setup's `bin/`. Its local README explains the modes and rebuild needs.
-Each probe creates a fresh directory under `runtime/reference-decomp/runs/` and
-uses private working saves, leaving the interactive reference saves alone.
-Runs record their mode, configuration snapshot and executable/configuration
-hashes for later comparisons.
-
-Earlier launcher and data paths remain compatibility symlinks. Historical
-experiment sources and outputs stay in their original folders. The reference
-checkout is needed only to rebuild its binaries; the main launcher and ScummVM
-engine never depend on this optional comparison setup. Reference-native saves
-and ScummVM saves are separate formats. No private data or reference binaries
-belong in Git or release archives.
+The [reference-engine comparison](CONTROLLER-COMPARISON.md) records the shared
+findings and implementation decisions. Its upstream references are pinned public
+source links; a local reference-engine installation is optional. Historical
+captures, one-off helpers and private review reports are not part of the shared
+instructions. When reusing your own evidence, verify its save, configuration,
+source revision and executable, preserve the original results, and use fresh
+outputs. An old passing result does not validate the current build.
 
 ## Launcher and toolchain
 
@@ -96,9 +76,12 @@ Private fixture inputs belong under `user-data/test-fixtures/`:
 | `opening-saves/remorse-opening-probe.001` | The same mission-start state, under the gameplay target name |
 | `opening-saves/remorse-opening-probe.000` | First-mission save containing camera item 9424 and robot actor 5 |
 
-These local fixtures have been preserved for development. New checkouts must
-supply equivalent saves from their own game. They contain game-derived data
-and must never be committed or included in release archives.
+These fixtures are not included. Create equivalent saves in your own supported
+game copy and copy them into the layout above, or pass `--fixtures` with a folder
+containing that layout. The mission-start fixture can be made with a new game
+and a quicksave; the camera/robot case additionally requires the stated objects
+to be present. They contain game-derived data and must never be committed or
+included in release archives.
 
 With a graphical X11/XWayland session and an SDL-mapped controller connected:
 

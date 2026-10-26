@@ -36,6 +36,12 @@ git diff --check
 Review the staged files before committing. Game files, installers, saves,
 generated runtimes and distribution archives must remain outside Git.
 
+Shared documentation must work from a fresh checkout. Link to tracked files or
+pinned public upstream sources. When documenting an ignored path, name the
+tracked command that generates it or explain the private input the user must
+supply. Local captures, review reports and one-off helpers belong in private
+notes; shared findings must be understandable without opening those files.
+
 ## Releases
 
 Create `release/<version>` from `develop` when a release is ready to stabilize.
