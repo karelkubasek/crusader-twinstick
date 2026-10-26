@@ -13,6 +13,8 @@ class Gamepad:
             "SDL_SetHint": (C.c_int, [C.c_char_p, C.c_char_p]),
             "SDL_GetError": (C.c_char_p, []),
             "SDL_NumJoysticks": (C.c_int, []),
+            "SDL_IsGameController": (C.c_int, [C.c_int]),
+            "SDL_PumpEvents": (None, []),
             "SDL_JoystickOpen": (C.c_void_p, [C.c_int]),
             "SDL_JoystickClose": (None, [C.c_void_p]),
             "SDL_JoystickName": (C.c_char_p, [C.c_void_p]),
@@ -35,8 +37,9 @@ class Gamepad:
         self.sdl.SDL_JoystickUpdate()
         self.count = self.sdl.SDL_NumJoysticks()
         self.name = "No controller detected"
-        if self.count:
-            self.handle = self.sdl.SDL_JoystickOpen(0)
+        self.index = next((i for i in range(self.count) if self.sdl.SDL_IsGameController(i)), None)
+        if self.index is not None:
+            self.handle = self.sdl.SDL_JoystickOpen(self.index)
             if self.handle:
                 name = self.sdl.SDL_JoystickName(self.handle)
                 self.name = name.decode(errors="replace") if name else "Controller 1"

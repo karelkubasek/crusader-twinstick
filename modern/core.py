@@ -19,7 +19,8 @@ THEMES = ROOT / "runtime-engine/share/themes"
 LOG = STATE / "logs/scummvm.log"
 TARGET = "remorse-twin-stick"
 
-DEFAULTS = {"enabled": True, "deadzone": 15, "aim_deadzone": 15, "hysteresis": 5, "fullscreen": True}
+DEFAULTS = {"enabled": True, "deadzone": 15, "aim_deadzone": 15, "hysteresis": 5,
+            "fullscreen": True, "skip_intro": True}
 KEYS = {
     "LCLK": "MOUSE_LEFT", "RCLK": "MOUSE_RIGHT",
     "COMBAT": "c JOY_RIGHT_STICK", "MENU": "ESCAPE JOY_START",
@@ -116,12 +117,13 @@ def load_settings():
         "aim_deadzone": section.getint("crusader_aim_deadzone", 15),
         "hysteresis": section.getint("crusader_stick_hysteresis", 5),
         "fullscreen": section.getboolean("fullscreen", DEFAULTS["fullscreen"]),
+        "skip_intro": section.getboolean("skip_intro", DEFAULTS["skip_intro"]),
     }
     return validate(settings)
 
 def validate(settings):
-    if type(settings["enabled"]) is not bool or type(settings["fullscreen"]) is not bool:
-        raise ValueError("Enabled and fullscreen must be true or false")
+    if any(type(settings[key]) is not bool for key in ("enabled", "fullscreen", "skip_intro")):
+        raise ValueError("Enabled, fullscreen and skip opening movies must be true or false")
     integer_keys = ("deadzone", "hysteresis", "aim_deadzone")
     if any(type(settings[k]) is not int for k in integer_keys):
         raise ValueError("Thresholds must be whole percentages")
@@ -144,6 +146,7 @@ def save_settings(settings):
     section.update({"gameid": "remorse", "engineid": "ultima", "description": description,
                     "path": str(DATA), "extrapath": str(EXTRA), "savepath": str(SAVES), "joystick_num": "0",
                     "fullscreen": str(settings["fullscreen"]).lower(), "crusader_modern_controls": str(settings["enabled"]).lower(),
+                    "skip_intro": str(settings["skip_intro"]).lower(),
                     "crusader_stick_deadzone": str(settings["deadzone"]),
                     "crusader_stick_hysteresis": str(settings["hysteresis"])})
     section["crusader_twin_stick"] = "true"
@@ -174,7 +177,7 @@ def launch(launcher=False):
     prepare_data()
     config = read_config()
     section = config[TARGET] if config.has_section(TARGET) else {}
-    if any(section.get(key) != str(value) for key, value in
+    if "skip_intro" not in section or any(section.get(key) != str(value) for key, value in
            (("path", DATA), ("savepath", SAVES), ("extrapath", EXTRA))):
         save_settings(load_settings())
     command = [str(BINARY), "--config=" + str(CONFIG), "--extrapath=" + str(EXTRA)]

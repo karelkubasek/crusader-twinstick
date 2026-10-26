@@ -20,13 +20,14 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from modern import __version__
 from scripts.stage_runtime import BASE, stage
 
 SYSTEM_LIBS = {"libc.so.6", "libm.so.6", "libdl.so.2", "libpthread.so.0", "librt.so.1", "libresolv.so.2",
                "ld-linux-x86-64.so.2", "ld.so"}
 SOURCE_DIRS = {"modern": {".py"}, "assets": {".svg", ".json"}, "scripts": {".py", ".sh", ".c", ".cpp"},
                "patches": {".patch"}, "docs": {".md"}, "tests": {".py"}, "licenses": None}
-SOURCE_FILES = ("README.md", "NOTICE.md", "LICENSE", ".gitignore", ".gitattributes", "start.sh")
+SOURCE_FILES = ("CHANGELOG.md", "DESIGN.md", "PRODUCT.md", "README.md", "NOTICE.md", "LICENSE", ".gitignore", ".gitattributes", "start.sh")
 
 
 def run(command, **kwargs):
@@ -323,7 +324,7 @@ def build(workspace=ROOT):
     engine_info["unpatched_binary_sha256"] = engine_info["binary_sha256"]
     engine_info["binary_sha256"] = digest(destination / "runtime-engine/bin/scummvm.bin")
     (destination / "runtime-engine/build.json").write_text(json.dumps(engine_info, indent=2) + "\n")
-    metadata = {"platform": "Linux x86_64", "minimum_glibc": minimum, "engine": engine_info,
+    metadata = {"version": __version__, "platform": "Linux x86_64", "minimum_glibc": minimum, "engine": engine_info,
                 "components": {k: {n: v for n, v in r.items() if n != "prefix"} for k, r in records.items()}}
     (destination / "BUILD-INFO.json").write_text(json.dumps(metadata, indent=2) + "\n")
     source_archive = ROOT / "dist/CrusaderTwinStick-source.tar.gz"

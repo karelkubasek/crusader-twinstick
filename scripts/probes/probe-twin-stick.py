@@ -253,6 +253,23 @@ try:
     axis("UP", 0)
     ticks(4)
 
+    axis("RIGHT", 24000)
+    aim("LEFT", 18000)
+    raw_axis(5, 26000)
+    ticks(4)
+    state()
+    gdb.parse_and_eval("(void)Ultima::Ultima8::Ultima8Engine::_instance->_mouse->buttonDown(Ultima::Ultima8::Mouse::BUTTON_RIGHT)")
+    gdb.parse_and_eval("(unsigned int)Ultima::Ultima8::Ultima8Engine::I_clearKeyboardState(0,0)")
+    stopped = state()
+    ticks(20)
+    cleared = not bool(gdb.parse_and_eval("$probe_mover->_stick._active")) and not bool(gdb.parse_and_eval("$probe_mover->_aimStick._active"))
+    mouse_state = int(gdb.parse_and_eval("Ultima::Ultima8::Ultima8Engine::_instance->_mouse->_mouseButton[2]._state"))
+    check(cleared and position(stopped) == position(state()) and mouse_state == 2,
+          "script_input_reset_clears_held_sticks_and_pending_mouse_clicks", stopped, state())
+    axis("RIGHT", 0)
+    aim("LEFT", 0)
+    raw_axis(5, 0)
+
     report["passed"] = True
 except Exception as error:
     report["passed"] = False

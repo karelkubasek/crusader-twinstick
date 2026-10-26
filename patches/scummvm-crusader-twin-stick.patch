@@ -18,6 +18,448 @@ index 7db2f0c1..ca7ce8da 100644
  #endif
  	return Common::KeymapArray();
  }
+diff --git a/engines/ultima/ultima8/games/cru_game.cpp b/engines/ultima/ultima8/games/cru_game.cpp
+index 271315e9..edd5f4d7 100644
+--- a/engines/ultima/ultima8/games/cru_game.cpp
++++ b/engines/ultima/ultima8/games/cru_game.cpp
+@@ -48,7 +48,7 @@
+ namespace Ultima {
+ namespace Ultima8 {
+ 
+-CruGame::CruGame() : Game(), _skipIntroMovie(false) {
++CruGame::CruGame() : Game(), _startNewGame(false) {
+ }
+ 
+ CruGame::~CruGame() {
+@@ -137,13 +137,17 @@ bool CruGame::startGame() {
+ }
+ 
+ bool CruGame::startInitialUsecode(int saveSlot) {
+-	if (saveSlot >= 0 && ConfMan.getBool("skip_intro"))
+-		_skipIntroMovie = true;
+-	Process* proc = new StartCrusaderProcess(saveSlot);
++	Process *proc = new StartCrusaderProcess(saveSlot, _startNewGame);
++	_startNewGame = false;
+ 	Kernel::get_instance()->addProcess(proc);
+ 	return true;
+ }
+ 
++void CruGame::startNewGame() {
++	_startNewGame = true;
++	Ultima8Engine::get_instance()->newGame(-1);
++}
++
+ 
+ static ProcId playMovie(const char *movieID, bool fade, bool noScale) {
+ 	MovieGump *gump = MovieGump::CruMovieViewer(movieID, 640, 480, nullptr, nullptr, 0);
+@@ -156,7 +160,7 @@ static ProcId playMovie(const char *movieID, bool fade, bool noScale) {
+ }
+ 
+ ProcId CruGame::playIntroMovie(bool fade) {
+-	if (_skipIntroMovie)
++	if (ConfMan.getBool("skip_intro"))
+ 		return 0;
+ 	const char *name = (GAME_IS_REMORSE ? "T01" : "origin");
+ 	ProcId pid = playMovie(name, fade, true);
+@@ -168,7 +172,7 @@ ProcId CruGame::playIntroMovie(bool fade) {
+ }
+ 
+ ProcId CruGame::playIntroMovie2(bool fade) {
+-	if (_skipIntroMovie)
++	if (ConfMan.getBool("skip_intro"))
+ 		return 0;
+ 	const char *name = (GAME_IS_REMORSE ? "T02" : "ANIM01");
+ 	return playMovie(name, fade, false);
+diff --git a/engines/ultima/ultima8/games/cru_game.h b/engines/ultima/ultima8/games/cru_game.h
+index e835b412..a8fa3437 100644
+--- a/engines/ultima/ultima8/games/cru_game.h
++++ b/engines/ultima/ultima8/games/cru_game.h
+@@ -54,13 +54,10 @@ public:
+ 	/** Play credits but without showing a menu at the end - just finish. */
+ 	ProcId playCreditsNoMenu();
+ 
+-	void setSkipIntroMovie() {
+-		_skipIntroMovie = true;
+-	}
++	void startNewGame();
+ 
+ private:
+-	/** Whether this game should skip the intro movie on startup */
+-	bool _skipIntroMovie;
++	bool _startNewGame;
+ };
+ 
+ } // End of namespace Ultima8
+diff --git a/engines/ultima/ultima8/games/start_crusader_process.cpp b/engines/ultima/ultima8/games/start_crusader_process.cpp
+index 171512d4..b1a76a4a 100644
+--- a/engines/ultima/ultima8/games/start_crusader_process.cpp
++++ b/engines/ultima/ultima8/games/start_crusader_process.cpp
+@@ -26,6 +26,8 @@
+ #include "ultima/ultima8/ultima8.h"
+ #include "ultima/ultima8/kernel/kernel.h"
+ #include "ultima/ultima8/gumps/difficulty_gump.h"
++#include "ultima/ultima8/gumps/gump_notify_process.h"
++#include "ultima/ultima8/gumps/cru_menu_gump.h"
+ #include "ultima/ultima8/gumps/cru_status_gump.h"
+ #include "ultima/ultima8/gumps/cru_pickup_area_gump.h"
+ #include "ultima/ultima8/world/get_object.h"
+@@ -39,8 +41,8 @@ namespace Ultima8 {
+ 
+ DEFINE_RUNTIME_CLASSTYPE_CODE(StartCrusaderProcess)
+ 
+-StartCrusaderProcess::StartCrusaderProcess(int saveSlot) : Process(),
+-_initStage(PlayFirstMovie), _saveSlot(saveSlot) {
++StartCrusaderProcess::StartCrusaderProcess(int saveSlot, bool startNewGame) : Process(),
++_initStage(startNewGame ? ShowDifficultyMenu : PlayFirstMovie), _saveSlot(saveSlot) {
+ 	_flags |= PROC_PREVENT_SAVE;
+ }
+ 
+@@ -55,7 +57,7 @@ void StartCrusaderProcess::run() {
+ 		}
+ 		return;
+ 	} else if (_initStage == PlaySecondMovie) {
+-		_initStage = ShowDifficultyMenu;
++		_initStage = ShowMainMenu;
+ 		CruGame *game = dynamic_cast<CruGame *>(Game::get_instance());
+ 		assert(game);
+ 		ProcId moviepid = game->playIntroMovie2(false);
+@@ -79,10 +81,23 @@ void StartCrusaderProcess::run() {
+ 		return;
+ 	}
+ 
++	if (_initStage == StartGame && !_result)
++		_initStage = ShowMainMenu;
++
++	if (_initStage == ShowMainMenu) {
++		CruMenuGump *gump = new CruMenuGump(true);
++		gump->InitGump(nullptr, true);
++		gump->setRelativePosition(Gump::CENTER);
++		terminate();
++		return;
++	}
++
+ 	if (_initStage == ShowDifficultyMenu) {
+ 		DifficultyGump *gump = new DifficultyGump();
+ 		_initStage = StartGame;
+ 		gump->InitGump(nullptr, true);
++		gump->CreateNotifier();
++		waitFor(gump->GetNotifyProcess());
+ 		return;
+ 	}
+ 
+diff --git a/engines/ultima/ultima8/games/start_crusader_process.h b/engines/ultima/ultima8/games/start_crusader_process.h
+index 41313d80..9929d913 100644
+--- a/engines/ultima/ultima8/games/start_crusader_process.h
++++ b/engines/ultima/ultima8/games/start_crusader_process.h
+@@ -35,6 +35,7 @@ public:
+ 	enum CruInitStage {
+ 		PlayFirstMovie,
+ 		PlaySecondMovie,
++		ShowMainMenu,
+ 		ShowDifficultyMenu,
+ 		StartGame
+ 	};
+@@ -44,7 +45,7 @@ protected:
+ 	int _saveSlot;
+ 
+ public:
+-	StartCrusaderProcess(int saveSlot);
++	StartCrusaderProcess(int saveSlot, bool startNewGame = false);
+ 
+ 	ENABLE_RUNTIME_CLASSTYPE()
+ 
+diff --git a/engines/ultima/ultima8/gumps/cru_menu_gump.cpp b/engines/ultima/ultima8/gumps/cru_menu_gump.cpp
+index 0e4c2367..7ffead2e 100644
+--- a/engines/ultima/ultima8/gumps/cru_menu_gump.cpp
++++ b/engines/ultima/ultima8/gumps/cru_menu_gump.cpp
+@@ -28,6 +28,7 @@
+ #include "ultima/ultima8/games/game_data.h"
+ #include "ultima/ultima8/gfx/gump_shape_archive.h"
+ #include "ultima/ultima8/gfx/palette_manager.h"
++#include "ultima/ultima8/gfx/render_surface.h"
+ #include "ultima/ultima8/gfx/shape.h"
+ #include "ultima/ultima8/gfx/shape_frame.h"
+ #include "ultima/ultima8/gumps/quit_gump.h"
+@@ -45,8 +46,9 @@ DEFINE_RUNTIME_CLASSTYPE_CODE(CruMenuGump)
+ static const int MENU_MUSIC_REMORSE = 20;
+ static const int MENU_MUSIC_REGRET = 18;
+ 
+-CruMenuGump::CruMenuGump()
+-	: ModalGump(0, 0, 640, 480, 0, FLAG_DONT_SAVE) {
++CruMenuGump::CruMenuGump(bool startup)
++	: ModalGump(0, 0, 640, 480, 0, FLAG_DONT_SAVE | (startup ? FLAG_PREVENT_SAVE : 0)),
++	_startup(startup), _highlighted(1) {
+ 
+ 	Mouse *mouse = Mouse::get_instance();
+ 	mouse->pushMouseCursor(Mouse::MOUSE_HAND);
+@@ -165,8 +167,23 @@ void CruMenuGump::InitGump(Gump *newparent, bool take_focus) {
+ 	}
+ }
+ 
+-void CruMenuGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool scaled) {
+-	Gump::PaintThis(surf, lerp_factor, scaled);
++void CruMenuGump::PaintChildren(RenderSurface *surf, int32 lerp_factor, bool scaled) {
++	for (Gump *child : _children) {
++		const int index = child->GetIndex();
++		if (index >= 1 && index <= NUM_MENU_ENTRIES && dynamic_cast<ButtonWidget *>(child))
++			child->Set_frameNum(index == _highlighted ? 1 : 0);
++	}
++	Gump::PaintChildren(surf, lerp_factor, scaled);
++}
++
++Gump *CruMenuGump::onMouseMotion(int32 mx, int32 my) {
++	Gump *child = Gump::onMouseMotion(mx, my);
++	if (child && child->GetParent() == this && dynamic_cast<ButtonWidget *>(child)) {
++		const int index = child->GetIndex();
++		if (index >= 1 && index <= NUM_MENU_ENTRIES && !(_startup && index == 3))
++			_highlighted = index;
++	}
++	return child;
+ }
+ 
+ bool CruMenuGump::OnKeyDown(int key, int mod) {
+@@ -175,10 +192,21 @@ bool CruMenuGump::OnKeyDown(int key, int mod) {
+ 	if (key == Common::KEYCODE_ESCAPE) {
+ 		// FIXME: this check should probably be in Game or GUIApp
+ 		MainActor *av = getMainActor();
+-		if (av && !av->hasActorFlags(Actor::ACT_DEAD))
++		if (!_startup && av && !av->hasActorFlags(Actor::ACT_DEAD))
+ 			Close(); // don't allow closing if dead/game over
+ 	} else if (key >= Common::KEYCODE_1 && key <= Common::KEYCODE_6) {
+ 		selectEntry(key - Common::KEYCODE_1 + 1);
++	} else if (key == Common::KEYCODE_UP || key == Common::KEYCODE_DOWN) {
++		int delta = key == Common::KEYCODE_UP ? -1 : 1;
++		do {
++			_highlighted = (_highlighted - 1 + delta + NUM_MENU_ENTRIES) % NUM_MENU_ENTRIES + 1;
++		} while (_startup && _highlighted == 3);
++	} else if (key == Common::KEYCODE_LEFT || key == Common::KEYCODE_RIGHT) {
++		_highlighted = (_highlighted - 1 + 3) % NUM_MENU_ENTRIES + 1;
++		if (_startup && _highlighted == 3)
++			_highlighted = 2;
++	} else if (key == Common::KEYCODE_RETURN || key == Common::KEYCODE_KP_ENTER) {
++		selectEntry(_highlighted);
+ 	}
+ 
+ 	return true;
+@@ -187,6 +215,9 @@ bool CruMenuGump::OnKeyDown(int key, int mod) {
+ void CruMenuGump::ChildNotify(Gump *child, uint32 message) {
+ 	ButtonWidget *buttonWidget = dynamic_cast<ButtonWidget *>(child);
+ 	if (buttonWidget && message == ButtonWidget::BUTTON_CLICK) {
++		if (_startup && child->GetIndex() == 3)
++			return;
++		_highlighted = child->GetIndex();
+ 		selectEntry(child->GetIndex());
+ 	}
+ }
+@@ -194,18 +225,17 @@ void CruMenuGump::ChildNotify(Gump *child, uint32 message) {
+ void CruMenuGump::selectEntry(int entry) {
+ 	switch (entry) {
+ 	case 1: { // New Game
+-		Ultima8Engine::get_instance()->newGame(-1);
+-		// When starting a new game from the menu, we skip intro movies.
+ 		CruGame *game = dynamic_cast<CruGame *>(Game::get_instance());
+ 		assert(game);
+-		game->setSkipIntroMovie();
++		game->startNewGame();
+ 		break;
+ 	}
+ 	case 2:
+ 		Ultima8Engine::get_instance()->loadGameDialog();
+ 		break;
+ 	case 3: // Load/Save Game
+-		Ultima8Engine::get_instance()->saveGameDialog();
++		if (!_startup)
++			Ultima8Engine::get_instance()->saveGameDialog();
+ 		break;
+ 	case 4: {
+ 		// Options - show the ScummVM options dialog
+diff --git a/engines/ultima/ultima8/gumps/cru_menu_gump.h b/engines/ultima/ultima8/gumps/cru_menu_gump.h
+index 66418ea0..238c011d 100644
+--- a/engines/ultima/ultima8/gumps/cru_menu_gump.h
++++ b/engines/ultima/ultima8/gumps/cru_menu_gump.h
+@@ -19,8 +19,8 @@
+  *
+  */
+ 
+-#ifndef ULTIMA8_GUMPS_REMORSEMENUGUMP_H
+-#define ULTIMA8_GUMPS_REMORSEMENUGUMP_H
++#ifndef ULTIMA8_GUMPS_CRUMENUGUMP_H
++#define ULTIMA8_GUMPS_CRUMENUGUMP_H
+ 
+ #include "ultima/ultima8/gumps/modal_gump.h"
+ #include "ultima/ultima8/misc/classtype.h"
+@@ -35,7 +35,7 @@ class CruMenuGump : public ModalGump {
+ public:
+ 	ENABLE_RUNTIME_CLASSTYPE()
+ 
+-	CruMenuGump();
++	CruMenuGump(bool startup = false);
+ 	~CruMenuGump() override;
+ 
+ 	// Init the gump, call after construction
+@@ -43,13 +43,16 @@ public:
+ 	void Close(bool no_del = false) override;
+ 
+ 	// Paint the Gump
+-	void PaintThis(RenderSurface *, int32 lerp_factor, bool scaled) override;
++	void PaintChildren(RenderSurface *, int32 lerp_factor, bool scaled) override;
+ 
+ 	bool OnKeyDown(int key, int mod) override;
+ 	bool OnTextInput(int unicode) override;
+ 	void ChildNotify(Gump *child, uint32 message) override;
++	Gump *onMouseMotion(int32 mx, int32 my) override;
+ 
+ protected:
++	bool _startup;
++	int _highlighted;
+ 
+ 	virtual void selectEntry(int entry);
+ };
+diff --git a/engines/ultima/ultima8/gumps/difficulty_gump.cpp b/engines/ultima/ultima8/gumps/difficulty_gump.cpp
+index f9cb0317..a56e6a70 100644
+--- a/engines/ultima/ultima8/gumps/difficulty_gump.cpp
++++ b/engines/ultima/ultima8/gumps/difficulty_gump.cpp
+@@ -158,7 +158,7 @@ bool DifficultyGump::OnKeyDown(int key, int mod) {
+ 	if (ModalGump::OnKeyDown(key, mod)) return true;
+ 
+ 	if (key == Common::KEYCODE_ESCAPE) {
+-		// Don't allow closing, we have to choose a difficulty.
++		Close();
+ 		return true;
+ 	} else if (key >= Common::KEYCODE_1 && key <= Common::KEYCODE_4) {
+ 		selectEntry(key - Common::KEYCODE_1 + 1);
+@@ -182,6 +182,7 @@ bool DifficultyGump::OnKeyDown(int key, int mod) {
+ void DifficultyGump::selectEntry(int num) {
+ 	debug(6, "selected difficulty %d", num);
+ 	World::get_instance()->setGameDifficulty(num);
++	SetResult(num);
+ 	Close();
+ }
+ 
+diff --git a/engines/ultima/ultima8/gumps/quit_gump.cpp b/engines/ultima/ultima8/gumps/quit_gump.cpp
+index 0b58e0c9..7d86c009 100644
+--- a/engines/ultima/ultima8/gumps/quit_gump.cpp
++++ b/engines/ultima/ultima8/gumps/quit_gump.cpp
+@@ -25,10 +25,13 @@
+ #include "ultima/ultima8/gfx/gump_shape_archive.h"
+ #include "ultima/ultima8/gfx/shape.h"
+ #include "ultima/ultima8/gfx/shape_frame.h"
++#include "ultima/ultima8/gfx/render_surface.h"
++#include "ultima/ultima8/gfx/texture.h"
+ #include "ultima/ultima8/ultima8.h"
+ #include "ultima/ultima8/kernel/mouse.h"
+ #include "ultima/ultima8/gumps/widgets/button_widget.h"
+ #include "ultima/ultima8/gumps/widgets/text_widget.h"
++#include "ultima/ultima8/world/get_object.h"
+ 
+ namespace Ultima {
+ namespace Ultima8 {
+@@ -52,7 +55,7 @@ static const int regYesShapeId = 19;
+ static const int regNoShapeId = 20;
+ static const int regQuitSound = 0;  // TODO: Work out what sound id
+ 
+-QuitGump::QuitGump(): ModalGump(0, 0, 5, 5), _yesWidget(0), _noWidget(0) {
++QuitGump::QuitGump(): ModalGump(0, 0, 5, 5), _yesWidget(0), _noWidget(0), _yesSelected(false) {
+ 	Mouse *mouse = Mouse::get_instance();
+ 	mouse->pushMouseCursor(Mouse::MOUSE_HAND);
+ 	if (GAME_IS_U8) {
+@@ -146,11 +149,44 @@ void QuitGump::InitGump(Gump *newparent, bool take_focus) {
+ }
+ 
+ 
+-void QuitGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool scaled) {
+-	Gump::PaintThis(surf, lerp_factor, scaled);
++void QuitGump::PaintChildren(RenderSurface *surf, int32 lerp_factor, bool scaled) {
++	ModalGump::PaintChildren(surf, lerp_factor, scaled);
++	if (GAME_IS_CRUSADER) {
++		Gump *button = getGump(_yesSelected ? _yesWidget : _noWidget);
++		if (button) {
++			Common::Rect32 rect = button->getDims();
++			button->GumpToParent(rect.left, rect.top);
++			button->GumpToParent(rect.right, rect.bottom);
++			rect.grow(2);
++			surf->frameRect32(TEX32_PACK_RGB(0xC6, 0x04, 0x00), rect);
++		}
++	}
+ }
+ 
+ bool QuitGump::OnKeyDown(int key, int mod) {
++	if (GAME_IS_CRUSADER) {
++		switch (key) {
++		case Common::KEYCODE_LEFT:
++			_yesSelected = true;
++			return true;
++		case Common::KEYCODE_RIGHT:
++			_yesSelected = false;
++			return true;
++		case Common::KEYCODE_UP:
++		case Common::KEYCODE_DOWN:
++			_yesSelected = !_yesSelected;
++			return true;
++		case Common::KEYCODE_RETURN:
++		case Common::KEYCODE_KP_ENTER:
++			if (_yesSelected)
++				Ultima8Engine::get_instance()->quitGame();
++			else
++				Close();
++			return true;
++		default:
++			break;
++		}
++	}
+ 	switch (key) {
+ 	case Common::KEYCODE_ESCAPE: {
+ 		Close();
+diff --git a/engines/ultima/ultima8/gumps/quit_gump.h b/engines/ultima/ultima8/gumps/quit_gump.h
+index 349d0c5d..f70b83fb 100644
+--- a/engines/ultima/ultima8/gumps/quit_gump.h
++++ b/engines/ultima/ultima8/gumps/quit_gump.h
+@@ -40,7 +40,7 @@ public:
+ 
+ 	void InitGump(Gump *newparent, bool take_focus = true) override;
+ 
+-	void PaintThis(RenderSurface *, int32 lerp_factor, bool scaled) override;
++	void PaintChildren(RenderSurface *, int32 lerp_factor, bool scaled) override;
+ 
+ 	bool OnKeyDown(int key, int mod) override;
+ 	bool OnTextInput(int unicode) override;
+@@ -53,6 +53,7 @@ public:
+ 
+ protected:
+ 	ObjId _yesWidget, _noWidget;
++	bool _yesSelected;
+ 
+ 	uint32 _gumpShape;	//! shape number for the dialog
+ 	uint32 _yesShape;	//! shape number for "yes" button
+diff --git a/engines/ultima/ultima8/kernel/mouse.cpp b/engines/ultima/ultima8/kernel/mouse.cpp
+index 204e3347..ddcf6697 100644
+--- a/engines/ultima/ultima8/kernel/mouse.cpp
++++ b/engines/ultima/ultima8/kernel/mouse.cpp
+@@ -139,6 +139,11 @@ bool Mouse::buttonUp(MouseButton button) {
+ 	return handled;
+ }
+ 
++void Mouse::resetInput() {
++	for (uint i = 0; i < ARRAYSIZE(_mouseButton); ++i)
++		_mouseButton[i] = MButton();
++}
++
+ void Mouse::popAllCursors() {
+ 	_cursors.clear();
+ 	_cursors.push(MOUSE_NONE);
+diff --git a/engines/ultima/ultima8/kernel/mouse.h b/engines/ultima/ultima8/kernel/mouse.h
+index 712fb688..c0ba09b8 100644
+--- a/engines/ultima/ultima8/kernel/mouse.h
++++ b/engines/ultima/ultima8/kernel/mouse.h
+@@ -145,6 +145,8 @@ public:
+ 	 */
+ 	bool buttonUp(MouseButton button);
+ 
++	void resetInput();
++
+ 	//! get mouse cursor length. 0 = short, 1 = medium, 2 = long
+ 	int getMouseLength(int mx, int my) const;
+ 
 diff --git a/engines/ultima/ultima8/metaengine.cpp b/engines/ultima/ultima8/metaengine.cpp
 index 5dba1f05..7fee9d31 100644
 --- a/engines/ultima/ultima8/metaengine.cpp
@@ -156,10 +598,46 @@ index a827d413..ee5d0d26 100644
  	/**
  	 * Return meta information from the specified save state for saves that do not have ExtendedSavegameHeader
 diff --git a/engines/ultima/ultima8/ultima8.cpp b/engines/ultima/ultima8/ultima8.cpp
-index 8d6056e5..63649672 100644
+index 8d6056e5..7f94d805 100644
 --- a/engines/ultima/ultima8/ultima8.cpp
 +++ b/engines/ultima/ultima8/ultima8.cpp
-@@ -585,6 +585,12 @@ Common::Error Ultima8Engine::startupGame() {
+@@ -21,12 +21,15 @@
+ 
+ #include "ultima/ultima8/ultima8.h"
+ 
++#include "backends/keymapper/action.h"
++#include "backends/keymapper/standard-actions.h"
+ #include "common/file.h"
+ #include "common/rational.h"
+ #include "common/translation.h"
+ #include "common/compression/unzip.h"
+ #include "engines/dialogs.h"
+ #include "engines/util.h"
++#include "gui/gui-manager.h"
+ #include "image/png.h"
+ #include "ultima/ultima.h"
+ #include "ultima/ultima8/audio/audio_mixer.h"
+@@ -40,6 +43,10 @@
+ #include "ultima/ultima8/gfx/fonts/font_manager.h"
+ #include "ultima/ultima8/gfx/render_surface.h"
+ #include "ultima/ultima8/gumps/game_map_gump.h"
++#include "ultima/ultima8/gumps/cru_menu_gump.h"
++#include "ultima/ultima8/gumps/difficulty_gump.h"
++#include "ultima/ultima8/gumps/movie_gump.h"
++#include "ultima/ultima8/gumps/quit_gump.h"
+ #include "ultima/ultima8/gumps/inverter_gump.h"
+ #include "ultima/ultima8/gumps/menu_gump.h"
+ #include "ultima/ultima8/gumps/message_box_gump.h"
+@@ -118,7 +125,7 @@ Ultima8Engine *Ultima8Engine::_instance = nullptr;
+ 
+ Ultima8Engine::Ultima8Engine(OSystem *syst, const Ultima::UltimaGameDescription *gameDesc) :
+ 		Engine(syst), _gameDescription(gameDesc), _randomSource("Ultima8"),
+-		_isRunning(false),  _gameInfo(nullptr),
++		_isRunning(false), _guiConfirmConsumed(false), _gameInfo(nullptr),
+ 		_configFileMan(nullptr), _saveCount(0), _game(nullptr), _lastError(Common::kNoError),
+ 		_kernel(nullptr), _objectManager(nullptr), _mouse(nullptr), _ucMachine(nullptr),
+ 		_screen(nullptr), _fontManager(nullptr), _paletteManager(nullptr), _gameData(nullptr),
+@@ -585,6 +592,12 @@ Common::Error Ultima8Engine::startupGame() {
  	// Position interpolation looks nice on U8, but causes Crusader to look janky.
  	ConfMan.registerDefault("interpolate", _gameInfo->_type == GameInfo::GAME_U8);
  	ConfMan.registerDefault("cheat", false);
@@ -172,7 +650,91 @@ index 8d6056e5..63649672 100644
  
  	bool loaded = _game->loadFiles();
  	if (!loaded)
-@@ -864,6 +870,17 @@ void Ultima8Engine::handleEvent(const Common::Event &event) {
+@@ -597,7 +610,7 @@ Common::Error Ultima8Engine::startupGame() {
+ 		_audioMixer->openMidiOutput();
+ 
+ 	int saveSlot = ConfMan.hasKey("save_slot") ? ConfMan.getInt("save_slot") : -1;
+-	if (saveSlot == -1 && ConfMan.hasKey("lastSave"))
++	if (saveSlot == -1 && !GAME_IS_CRUSADER && ConfMan.hasKey("lastSave"))
+ 		saveSlot = ConfMan.getInt("lastSave");
+ 
+ 	if (!newGame(saveSlot))
+@@ -614,8 +627,25 @@ static uint32 _fastTicksNow() {
+ 	return g_system->getMillis() * 3;
+ }
+ 
++static const uint32 CRUSADER_GUI_CONFIRM = MKTAG('C', 'R', 'U', 'A');
++
+ Common::Error Ultima8Engine::runGame() {
+ 	_isRunning = true;
++	Common::Keymapper *keymapper = _eventMan->getKeymapper();
++	if (!keymapper->getKeymap(Common::kGuiKeymapName))
++		keymapper->addGlobalKeymap(g_gui.getKeymap());
++	if (GAME_IS_CRUSADER) {
++		Common::Keymap *guiMap = keymapper->getKeymap(Common::kGuiKeymapName);
++		for (Common::Action *action : guiMap->getActions()) {
++			if (!strcmp(action->id, Common::kStandardActionInteract))
++				action->event.customType = CRUSADER_GUI_CONFIRM;
++			else if (!strcmp(action->id, "CLOS"))
++				action->addDefaultInputMapping("JOY_B");
++		}
++		guiMap->loadMappings();
++	}
++	const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(_avatarMoverProcess);
++	const bool smoothTwinStick = mover && mover->isTwinStickEnabled();
+ 
+ 	int32 next_ticks = _fastTicksNow();  // Next time is right now!
+ 
+@@ -658,7 +688,7 @@ Common::Error Ultima8Engine::runGame() {
+ 
+ 			// Calculate the lerp_factor
+ 			_lerpFactor = ((_animationRate - diff) * 256) / _animationRate;
+-			if (!_interpolate || _kernel->isPaused() || _lerpFactor > 256)
++			if ((!_interpolate && !smoothTwinStick) || _kernel->isPaused() || _lerpFactor > 256)
+ 				_lerpFactor = 256;
+ 		}
+ 
+@@ -779,18 +809,35 @@ Common::Error Ultima8Engine::changeVideoMode(int width, int height) {
+ 	return Common::kNoError;
+ }
+ 
+-void Ultima8Engine::handleEvent(const Common::Event &event) {
++Gump *Ultima8Engine::getModalGump() const {
+ 	// Handle the fact that we can get 2 modals stacking.
+ 	// We want the focussed one preferably.
+ 	Gump *modal = dynamic_cast<ModalGump *>(_desktopGump->GetFocusChild());
+ 	if (!modal)
+ 		modal = _desktopGump->FindGump<ModalGump>();
++	return modal;
++}
++
++void Ultima8Engine::handleEvent(const Common::Event &event) {
++	Gump *modal = getModalGump();
+ 	if (modal) {
+ 		_avatarMoverProcess->resetMovementFlags();
+ 	}
+-
+-	Common::Keymapper *const keymapper = _eventMan->getKeymapper();
+-	keymapper->setEnabledKeymapType(modal ? Common::Keymap::kKeymapTypeGui : Common::Keymap::kKeymapTypeGame);
++	if (GAME_IS_CRUSADER && event.customType == CRUSADER_GUI_CONFIRM) {
++		if (event.type == Common::EVENT_LBUTTONDOWN)
++			_guiConfirmConsumed = false;
++		if (event.type == Common::EVENT_LBUTTONUP && _guiConfirmConsumed) {
++			_guiConfirmConsumed = false;
++			return;
++		}
++		if (event.type == Common::EVENT_LBUTTONDOWN &&
++			(dynamic_cast<CruMenuGump *>(modal) || dynamic_cast<QuitGump *>(modal) || dynamic_cast<DifficultyGump *>(modal) ||
++			 dynamic_cast<MovieGump *>(modal))) {
++			_guiConfirmConsumed = true;
++			modal->OnKeyDown(dynamic_cast<MovieGump *>(modal) ? Common::KEYCODE_ESCAPE : Common::KEYCODE_RETURN, 0);
++			return;
++		}
++	}
+ 
+ 	switch (event.type) {
+ 	case Common::EVENT_KEYDOWN:
+@@ -864,6 +911,17 @@ void Ultima8Engine::handleEvent(const Common::Event &event) {
  	case Common::EVENT_CUSTOM_ENGINE_ACTION_END:
  		handleActionUp((KeybindingAction)event.customType);
  		break;
@@ -190,11 +752,103 @@ index 8d6056e5..63649672 100644
  
  	case Common::EVENT_QUIT:
  	case Common::EVENT_RETURN_TO_LAUNCHER:
+@@ -1773,6 +1831,15 @@ uint32 Ultima8Engine::I_getAvatarInStasis(const uint8 * /*args*/, unsigned int /
+ 		return 0;
+ }
+ 
++uint32 Ultima8Engine::I_clearKeyboardState(const uint8 * /*args*/, unsigned int /*argsize*/) {
++	Ultima8Engine *engine = get_instance();
++	if (engine->_avatarMoverProcess)
++		engine->_avatarMoverProcess->resetMovementFlags();
++	engine->_guiConfirmConsumed = false;
++	engine->_mouse->resetInput();
++	return 0;
++}
++
+ uint32 Ultima8Engine::I_setCruStasis(const uint8 *args, unsigned int argsize) {
+ 	get_instance()->setCruStasis(true);
+ 	return 0;
+@@ -1896,6 +1963,8 @@ bool Ultima8Engine::pollEvent(Common::Event &event) {
+ 	}
+ 
+ 	// Event handling
++	_eventMan->getKeymapper()->setEnabledKeymapType(getModalGump() ?
++		Common::Keymap::kKeymapTypeGui : Common::Keymap::kKeymapTypeGame);
+ 	return g_system->getEventManager()->pollEvent(event);
+ }
+ 
+diff --git a/engines/ultima/ultima8/ultima8.h b/engines/ultima/ultima8/ultima8.h
+index 581c1705..55a5d366 100644
+--- a/engines/ultima/ultima8/ultima8.h
++++ b/engines/ultima/ultima8/ultima8.h
+@@ -67,6 +67,7 @@ private:
+ 	Common::RandomSource _randomSource;
+ 
+ 	bool _isRunning;
++	bool _guiConfirmConsumed;
+ 	GameInfo *_gameInfo;
+ 	const UltimaGameDescription *_gameDescription;
+ 
+@@ -153,6 +154,7 @@ private:
+ 	void handleDelayedEvents();
+ 
+ 	bool pollEvent(Common::Event &event);
++	Gump *getModalGump() const;
+ protected:
+ 	// Engine APIs
+ 	Common::Error run() override;
+@@ -213,6 +215,7 @@ public:
+ 	INTRINSIC(I_getCurrentTimerTick);
+ 	INTRINSIC(I_setAvatarInStasis);
+ 	INTRINSIC(I_getAvatarInStasis);
++	INTRINSIC(I_clearKeyboardState);
+ 	INTRINSIC(I_getTimeInGameHours);
+ 	INTRINSIC(I_getTimeInMinutes);
+ 	INTRINSIC(I_getTimeInSeconds);
+diff --git a/engines/ultima/ultima8/usecode/remorse_intrinsics.h b/engines/ultima/ultima8/usecode/remorse_intrinsics.h
+index d3b40954..ecdedadb 100644
+--- a/engines/ultima/ultima8/usecode/remorse_intrinsics.h
++++ b/engines/ultima/ultima8/usecode/remorse_intrinsics.h
+@@ -258,7 +258,7 @@ const Intrinsic RemorseIntrinsics[] = {
+ 	Item::I_use, // void Intrinsic0D0(4 bytes)
+ 	AudioProcess::I_stopAllSFX,
+ 	MovieGump::I_playMovieCutscene, // void I_playFlic(int *item,char *flicname,word sizex,word sizey) // play flic
+-	0, // void Intrinsic0D3(void)
++	Ultima8Engine::I_clearKeyboardState, // void Intrinsic0D3(void)
+ 	AudioProcess::I_playSFX, // void Intrinsic0D4(2 bytes)
+ 	Item::I_use, // void Intrinsic0D5(4 bytes)
+ 	CameraProcess::I_getCameraZ, // int Intrinsic0D6(void)
+@@ -595,7 +595,7 @@ const Intrinsic RemorseDemoIntrinsics[] = {
+ 	Item::I_use,                    // Intrinsic0D0 10a0:2667
+ 	AudioProcess::I_stopAllSFX,     // Intrinsic0D1 12d8:054a
+ 	MovieGump::I_playMovieCutscene, // Intrinsic0D2 10a0:3a5b
+-	0, //I_clearKeyboardState,      // Intrinsic0D3 13e8:00a8
++	Ultima8Engine::I_clearKeyboardState, // Intrinsic0D3 13e8:00a8
+ 	AudioProcess::I_playSFX,        // Intrinsic0D4 12d8:0476
+ 	Item::I_use,                    // Intrinsic0D5 10a0:2667
+ 	CameraProcess::I_getCameraZ,    // Intrinsic0D6 1180:1cd5
+@@ -946,7 +946,7 @@ const Intrinsic RemorseEsIntrinsics[] = {
+ 	// 0x0E0
+ 	AudioProcess::I_stopAllSFX,     // Intrinsic0E0 12e0:054a
+ 	MovieGump::I_playMovieCutscene, // Intrinsic0E1 10a8:3a5b
+-	0, // I_clearKeyboardState,     // Intrinsic0E2 13e8:00a8
++	Ultima8Engine::I_clearKeyboardState, // Intrinsic0E2 13e8:00a8
+ 	AudioProcess::I_playSFX,        // Intrinsic0E3 12e0:0476
+ 	Item::I_use,                    // Intrinsic0E4 10a8:2667
+ 	CameraProcess::I_getCameraZ,    // Intrinsic0E5 1188:1cd5
 diff --git a/engines/ultima/ultima8/world/actors/actor_anim_process.cpp b/engines/ultima/ultima8/world/actors/actor_anim_process.cpp
-index 8a40de07..9c4cea1f 100644
+index 8a40de07..16fae75f 100644
 --- a/engines/ultima/ultima8/world/actors/actor_anim_process.cpp
 +++ b/engines/ultima/ultima8/world/actors/actor_anim_process.cpp
-@@ -32,6 +32,7 @@
+@@ -23,6 +23,7 @@
+ 
+ #include "common/config-manager.h"
+ #include "ultima/ultima8/audio/audio_process.h"
++#include "ultima/ultima8/gfx/anim_dat.h"
+ #include "ultima/ultima8/gfx/palette_fader_process.h"
+ #include "ultima/ultima8/kernel/delay_process.h"
+ #include "ultima/ultima8/kernel/kernel.h"
+@@ -32,6 +33,7 @@
  #include "ultima/ultima8/world/actors/auto_firer_process.h"
  #include "ultima/ultima8/world/actors/combat_process.h"
  #include "ultima/ultima8/world/actors/main_actor.h"
@@ -202,25 +856,101 @@ index 8a40de07..9c4cea1f 100644
  #include "ultima/ultima8/world/create_item_process.h"
  #include "ultima/ultima8/world/current_map.h"
  #include "ultima/ultima8/world/destroy_item_process.h"
-@@ -171,6 +172,13 @@ void ActorAnimProcess::run() {
+@@ -140,6 +142,10 @@ bool ActorAnimProcess::init() {
+ }
+ 
+ 
++Point3 ActorAnimProcess::getInPlaceRenderOffset() const {
++	return _tracker ? _tracker->getInPlaceRenderOffset() : Point3();
++}
++
+ void ActorAnimProcess::run() {
+ 	if (_firstFrame) {
+ 		bool ret = init();
+@@ -171,6 +177,21 @@ void ActorAnimProcess::run() {
  
  	_firstFrame = false;
  
++	bool twinStickLocomotion = false;
 +	if (GAME_IS_REMORSE && _itemNum == kMainActorId) {
 +		const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
 +			Ultima8Engine::get_instance()->getAvatarMoverProcess());
-+		if (mover && mover->isTwinStickLocomotion(getPid()))
++		twinStickLocomotion = mover && mover->isTwinStickLocomotion(getPid());
++		if (twinStickLocomotion) {
++			if (_tracker->getAnimAction()->getAction() != AnimDat::getActionNumberForSequence(_action, a)) {
++				terminate();
++				return;
++			}
 +			_tracker->setInPlaceMode();
++			_interpolate = false;
++		}
 +	}
 +
  	if (!a->hasFlags(Item::FLG_FASTAREA)) {
  		// not in the fast area? Kill the animation then.
  		//! TODO: Decide if this is the right move.
+@@ -194,6 +215,13 @@ void ActorAnimProcess::run() {
+ 		Point3 pt = a->getLocation();
+ 		resultVal = _tracker->stepFrom(pt);
+ 		_tracker->updateActorFlags();
++		if (!resultVal && _tracker->isDone() && twinStickLocomotion && !_steps && _waiting.empty()) {
++			// Continue the gait on this tick instead of holding its last frame.
++			_tracker->repeatInPlace();
++			resultVal = _tracker->stepFrom(pt);
++			_tracker->updateActorFlags();
++			_currentStep = 0;
++		}
+ 		_currentStep++;
+ 
+ 		if (!resultVal) {
+diff --git a/engines/ultima/ultima8/world/actors/actor_anim_process.h b/engines/ultima/ultima8/world/actors/actor_anim_process.h
+index 111b50b6..56ddabd0 100644
+--- a/engines/ultima/ultima8/world/actors/actor_anim_process.h
++++ b/engines/ultima/ultima8/world/actors/actor_anim_process.h
+@@ -34,6 +34,7 @@ class AnimAction;
+ struct AnimFrame;
+ class AnimationTracker;
+ class Item;
++struct Point3;
+ 
+ class ActorAnimProcess : public Process {
+ public:
+@@ -48,6 +49,7 @@ public:
+ 	void run() override;
+ 
+ 	void terminate() override;
++	Point3 getInPlaceRenderOffset() const;
+ 
+ 	Common::String dumpInfo() const override;
+ 
 diff --git a/engines/ultima/ultima8/world/actors/animation_tracker.cpp b/engines/ultima/ultima8/world/actors/animation_tracker.cpp
-index 21f813e6..45bef45c 100644
+index 21f813e6..29155ea2 100644
 --- a/engines/ultima/ultima8/world/actors/animation_tracker.cpp
 +++ b/engines/ultima/ultima8/world/actors/animation_tracker.cpp
-@@ -206,6 +206,10 @@ bool AnimationTracker::step() {
+@@ -26,6 +26,8 @@
+ #include "ultima/ultima8/world/world.h"
+ #include "ultima/ultima8/world/current_map.h"
+ #include "ultima/ultima8/gfx/main_shape_archive.h"
++#include "ultima/ultima8/gfx/shape.h"
++#include "ultima/ultima8/gfx/shape_frame.h"
+ #include "ultima/ultima8/gfx/anim_dat.h"
+ #include "ultima/ultima8/world/actors/anim_action.h"
+ #include "ultima/ultima8/misc/direction_util.h"
+@@ -132,6 +134,13 @@ bool AnimationTracker::stepFrom(const Point3 &pt) {
+ 	return step();
+ }
+ 
++void AnimationTracker::repeatInPlace() {
++	assert(_done && _mode == InPlaceMode);
++	_animAction->getAnimRange(_animAction->getAction(), _dir, _firstStep, _dir, _startFrame, _endFrame);
++	_firstFrame = true;
++	_done = false;
++}
++
+ void AnimationTracker::evaluateMaxAnimTravel(int32 &max_endx, int32 &max_endy, Direction dir) {
+ 	max_endx = _curr.x;
+ 	max_endy = _curr.y;
+@@ -206,6 +215,10 @@ bool AnimationTracker::step() {
  	int32 dx = 4 * Direction_XFactor(movedir) * f._deltaDir;
  	int32 dy = 4 * Direction_YFactor(movedir) * f._deltaDir;
  	int32 dz = f._deltaZ;
@@ -231,19 +961,84 @@ index 21f813e6..45bef45c 100644
  
  	if (_mode == TargetMode && !f.is_onground()) {
  		dx += _targetDx / _targetOffGroundLeft;
+@@ -522,6 +535,55 @@ void AnimationTracker::updateActorFlags() {
+ 		a->_animFrame = _currentFrame;
+ }
+ 
++Point3 AnimationTracker::getInPlaceRenderOffset() const {
++	if (_mode != InPlaceMode || !_animAction || _firstFrame)
++		return Point3();
++	const unsigned int size = _animAction->getSize();
++	if (!size || _currentFrame >= size)
++		return Point3();
++	const Actor *actor = getActor(_actor);
++	const Shape *shape = actor ? actor->getShapeObject() : nullptr;
++	if (!shape)
++		return Point3();
++	// The helmet occupies the top ten rows of the Silencer's locomotion frames.
++	// Register it along the authored travel axis; keep the perpendicular bob.
++	auto head = [shape](const AnimFrame &anim, int32 &x, int32 &y) {
++		const ShapeFrame *frame = shape->getFrame(anim._frame);
++		if (!frame)
++			return false;
++		int32 count = 0, sx = 0, sy = 0;
++		const Graphics::Surface &surface = frame->getSurface();
++		for (int row = 0; row < MIN<int>(10, surface.h); ++row) {
++			for (int col = 0; col < surface.w; ++col) {
++				if (surface.getPixel(col, row) != frame->_keycolor) {
++					sx += anim.is_cruflipped() ? frame->_xoff - 1 - col : col - frame->_xoff;
++					sy += row - frame->_yoff;
++					++count;
++				}
++			}
++		}
++		if (!count)
++			return false;
++		x = sx * 256 / count;
++		y = sy * 256 / count;
++		return true;
++	};
++	int32 x, y, baseX, baseY;
++	if (!head(_animAction->getFrame(_dir, _currentFrame), x, y) ||
++		!head(_animAction->getFrame(_dir, size - 1), baseX, baseY))
++		return Point3();
++	Direction dir = _animAction->hasFlags(AnimAction::AAF_ROTATED) ?
++		Direction_TurnByDelta(_dir, 4, dirmode_16dirs) : _dir;
++	const int32 sx = 2 * (Direction_XFactor(dir) - Direction_YFactor(dir));
++	const int32 sy = Direction_XFactor(dir) + Direction_YFactor(dir);
++	const int32 length = sx * sx + sy * sy;
++	const int32 distance = ((baseX - x) * sx + (baseY - y) * sy) / length;
++	auto pixel = [](int32 value) { return (value + (value < 0 ? -128 : 128)) / 256; };
++	const int32 offsetX = pixel(distance * sx);
++	const int32 offsetY = pixel(distance * sy);
++	return Point3(offsetX * 2 + offsetY * 4, -offsetX * 2 + offsetY * 4, 0);
++}
++
+ Point3 AnimationTracker::getInterpolatedPosition(int fc) const {
+ 	int32 dx = _curr.x - _prev.x;
+ 	int32 dy = _curr.y - _prev.y;
 diff --git a/engines/ultima/ultima8/world/actors/animation_tracker.h b/engines/ultima/ultima8/world/actors/animation_tracker.h
-index 004df2dc..a57b64c0 100644
+index 004df2dc..b09ff42f 100644
 --- a/engines/ultima/ultima8/world/actors/animation_tracker.h
 +++ b/engines/ultima/ultima8/world/actors/animation_tracker.h
-@@ -89,6 +89,7 @@ public:
+@@ -71,6 +71,7 @@ public:
+ 	}
+ 
+ 	Point3 getInterpolatedPosition(int fc) const;
++	Point3 getInPlaceRenderOffset() const;
+ 
+ 	//! get the difference between current position and previous position
+ 	void getSpeed(int32 &dx, int32 &dy, int32 &dz) const;
+@@ -89,6 +90,8 @@ public:
  	const AnimFrame *getAnimFrame() const;
  
  	void setTargetedMode(const Point3 &pt);
 +	void setInPlaceMode() { _mode = InPlaceMode; }
++	void repeatInPlace();
  
  	bool isDone() const {
  		return _done;
-@@ -109,7 +110,8 @@ public:
+@@ -109,7 +112,8 @@ public:
  private:
  	enum Mode {
  		NormalMode = 0,
@@ -267,7 +1062,7 @@ index 432ae86e..ecff0394 100644
  	}
  	void onMouseDown(int button, int32 mx, int32 my);
 diff --git a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp
-index c4d259c8..473ec3c7 100644
+index c4d259c8..915b8743 100644
 --- a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp
 +++ b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.cpp
 @@ -24,11 +24,13 @@
@@ -308,7 +1103,7 @@ index c4d259c8..473ec3c7 100644
  
  	// Even when we are not doing anything (because we're waiting for an anim)
  	// we check if the combat angle needs updating - this keeps it smooth.
-@@ -117,6 +127,273 @@ void CruAvatarMoverProcess::run() {
+@@ -117,6 +127,281 @@ void CruAvatarMoverProcess::run() {
  	AvatarMoverProcess::run();
  }
  
@@ -417,6 +1212,14 @@ index c4d259c8..473ec3c7 100644
 +		}
 +	}
 +	return true;
++}
++
++Point3 CruAvatarMoverProcess::getTwinStickRenderOffset() const {
++	if (!_twinStickControls || !_stick.isActive() || _modernActor != kMainActorId)
++		return Point3();
++	const ActorAnimProcess *animation = dynamic_cast<ActorAnimProcess *>(
++		Kernel::get_instance()->getProcess(_modernAnimation));
++	return animation && !animation->is_terminated() ? animation->getInPlaceRenderOffset() : Point3();
 +}
 +
 +bool CruAvatarMoverProcess::moveTwinStickActor(Actor *avatar) {
@@ -538,8 +1341,8 @@ index c4d259c8..473ec3c7 100644
 +	}
 +	Animation::Sequence idle = avatar->isKneeling() ? Animation::kneel :
 +		avatar->isInCombat() ? Animation::combatStand : Animation::stand;
-+	Direction facing = static_cast<Direction>(CruTwinStickMath::bodyDirection(angle,
-+		avatar->animDirMode(moving ? pose : idle) == dirmode_8dirs));
++	Direction facing = static_cast<Direction>(CruTwinStickMath::stableBodyDirection(angle,
++		avatar->animDirMode(moving ? pose : idle) == dirmode_8dirs, avatar->getDir()));
 +	bool oneShot = hasMovementFlags(MOVE_ROLL_LEFT | MOVE_ROLL_RIGHT | MOVE_STEP_LEFT | MOVE_STEP_RIGHT |
 +		MOVE_STEP_FORWARD | MOVE_STEP_BACK | MOVE_SHORT_JUMP | MOVE_TOGGLE_CROUCH);
 +	bool fire = hasMovementFlags(MOVE_ATTACKING) && kernel->getTickNum() >= _nextFireTick;
@@ -582,7 +1385,7 @@ index c4d259c8..473ec3c7 100644
  void CruAvatarMoverProcess::clearMovementFlag(uint32 mask) {
  	// Set a pending turn if we haven't already cleared the turn
  	if ((mask & MOVE_TURN_LEFT) && hasMovementFlags(MOVE_TURN_LEFT))
-@@ -471,7 +748,7 @@ void CruAvatarMoverProcess::handleNormalMode() {
+@@ -471,7 +756,7 @@ void CruAvatarMoverProcess::handleNormalMode() {
  	_idleTime = currentIdleTime + 1;
  }
  
@@ -591,7 +1394,7 @@ index c4d259c8..473ec3c7 100644
  							  bool adjusted) {
  	Actor *avatar = getControlledActor();
  
-@@ -558,13 +835,13 @@ void CruAvatarMoverProcess::step(Animation::Sequence action, Direction direction
+@@ -558,13 +843,13 @@ void CruAvatarMoverProcess::step(Animation::Sequence action, Direction direction
  	bool moving = _isAnimRunningWalking(action);
  
  	if (checkTurn(direction, moving))
@@ -608,7 +1411,7 @@ index c4d259c8..473ec3c7 100644
  	// Don't do it while this process is waiting
  	if (is_suspended())
  		return;
-@@ -663,7 +940,7 @@ void CruAvatarMoverProcess::tryAttack() {
+@@ -663,7 +948,7 @@ void CruAvatarMoverProcess::tryAttack() {
  
  			if (wpninfo->_shotDelay) {
  				_nextFireTick = kernel->getTickNum() + wpninfo->_shotDelay;
@@ -618,7 +1421,7 @@ index c4d259c8..473ec3c7 100644
  			}
  		}
 diff --git a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h
-index 8f97d884..896574be 100644
+index 8f97d884..07b35c9b 100644
 --- a/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h
 +++ b/engines/ultima/ultima8/world/actors/cru_avatar_mover_process.h
 @@ -23,11 +23,16 @@
@@ -638,7 +1441,7 @@ index 8f97d884..896574be 100644
  /**
   * Mover process that replicates the feel of Crusader - moving, combat, jumps, etc.
   * Tries sliding left and right if movement is blocked.  Walking cancels combat.
-@@ -50,10 +55,18 @@ public:
+@@ -50,10 +55,19 @@ public:
  	}
  
  	void clearMovementFlag(uint32 mask) override;
@@ -650,6 +1453,7 @@ index 8f97d884..896574be 100644
 +	bool isTwinStickEnabled() const { return _twinStickControls; }
 +	bool getTwinStickAimPoint(const Point3 &from, Point3 &to) const;
 +	Item *getTwinStickTarget() const;
++	Point3 getTwinStickRenderOffset() const;
  
  private:
  	/** Try readying or firing weapon. */
@@ -658,7 +1462,7 @@ index 8f97d884..896574be 100644
  
  	/** Check if we need to alert NPCs after firing. */
  	void checkForAlertingNPCs();
-@@ -80,12 +93,26 @@ private:
+@@ -80,12 +94,26 @@ private:
  	 * Last time we alerted NPCs on a shot.
  	 */
  	uint32 _lastNPCAlertTick;
@@ -686,103 +1490,6 @@ index 8f97d884..896574be 100644
  
  	bool checkOneShotMove(Direction direction);
  };
-diff --git a/engines/ultima/ultima8/world/item.cpp b/engines/ultima/ultima8/world/item.cpp
-index 837c433c..54803c54 100644
---- a/engines/ultima/ultima8/world/item.cpp
-+++ b/engines/ultima/ultima8/world/item.cpp
-@@ -57,6 +57,7 @@
- #include "ultima/ultima8/world/super_sprite_process.h"
- #include "ultima/ultima8/audio/audio_process.h"
- #include "ultima/ultima8/world/actors/main_actor.h"
-+#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
- #include "ultima/ultima8/world/actors/attack_process.h"
- #include "ultima/ultima8/world/missile_tracker.h"
- #include "ultima/ultima8/world/crosshair_process.h"
-@@ -1314,8 +1315,17 @@ uint16 Item::fireWeapon(int32 x, int32 y, int32 z, Direction dir, int firetype,
- 		}
- 	}
- 
-+	const CruAvatarMoverProcess *twinMover = nullptr;
-+	if (this == getControlledActor() && getObjId() == kMainActorId) {
-+		const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
-+			Ultima8Engine::get_instance()->getAvatarMoverProcess());
-+		if (mover && mover->isTwinStickEnabled())
-+			twinMover = mover;
-+	}
- 	if (findtarget) {
--		if (this != getControlledActor()) {
-+		if (twinMover) {
-+			target = twinMover->getTwinStickTarget();
-+		} else if (this != getControlledActor()) {
- 			if (GAME_IS_REMORSE || !thisactor)
- 				target = getControlledActor();
- 			// else already set above to attackproc target
-@@ -1346,6 +1356,8 @@ uint16 Item::fireWeapon(int32 x, int32 y, int32 z, Direction dir, int firetype,
- 			// Shoot toward the target
- 			ss = t;
- 			findtarget = true;
-+		} else if (twinMover && twinMover->getTwinStickAimPoint(pt, ss)) {
-+			// Read current stick aim rather than the previous crosshair frame.
- 		} else if (this == getControlledActor() && crosshair) {
- 			// Shoot toward the crosshair
- 			ss = crosshair->getLocation();
-diff --git a/engines/ultima/ultima8/world/target_reticle_process.cpp b/engines/ultima/ultima8/world/target_reticle_process.cpp
-index cb43cdc7..1e88bdbb 100644
---- a/engines/ultima/ultima8/world/target_reticle_process.cpp
-+++ b/engines/ultima/ultima8/world/target_reticle_process.cpp
-@@ -25,6 +25,7 @@
- #include "ultima/ultima8/games/game_data.h"
- #include "ultima/ultima8/kernel/kernel.h"
- #include "ultima/ultima8/world/actors/actor.h"
-+#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
- #include "ultima/ultima8/world/target_reticle_process.h"
- #include "ultima/ultima8/world/sprite_process.h"
- #include "ultima/ultima8/world/world.h"
-@@ -38,6 +39,13 @@ TargetReticleProcess *TargetReticleProcess::_instance = nullptr;
- 
- DEFINE_RUNTIME_CLASSTYPE_CODE(TargetReticleProcess)
- 
-+static const CruAvatarMoverProcess *getTwinStickMover() {
-+	Actor *actor = getControlledActor();
-+	const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
-+		Ultima8Engine::get_instance()->getAvatarMoverProcess());
-+	return mover && mover->isTwinStickEnabled() && actor && actor->getObjId() == kMainActorId ? mover : nullptr;
-+}
-+
- TargetReticleProcess::TargetReticleProcess() : Process(), _reticleEnabled(true),
- 		_lastUpdate(0), _reticleSpriteProcess(0), _lastTargetDir(dir_current), _lastTargetItem(0),
- 		_reticleStyle(0) {
-@@ -79,7 +87,7 @@ void TargetReticleProcess::run() {
- 			putTargetReticleOnItem(target, true);
- 	}
- 
--	if (frameno - _lastUpdate < 2 * Kernel::FRAMES_PER_SECOND) {
-+	if (!getTwinStickMover() && frameno - _lastUpdate < 2 * Kernel::FRAMES_PER_SECOND) {
- 		return;
- 	}
- 
-@@ -103,7 +111,9 @@ bool TargetReticleProcess::findTargetItem() {
- 
- 	Point3 pt = mainactor->getLocation();
- 
--	Item *item = currentmap->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
-+	const CruAvatarMoverProcess *mover = getTwinStickMover();
-+	Item *item = mover ? mover->getTwinStickTarget() :
-+		currentmap->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
- 
- 	if (item && item->getObjId() != _lastTargetItem) {
- 		Item *lastItem = getItem(_lastTargetItem);
-@@ -171,7 +181,9 @@ void TargetReticleProcess::itemMoved(Item *item) {
- 	SpriteProcess *spriteproc = dynamic_cast<SpriteProcess *>(Kernel::get_instance()->getProcess(_reticleSpriteProcess));
- 
- 	if (spriteproc) {
--		if (actordir != _lastTargetDir || dirtoitem != _lastTargetDir) {
-+		const CruAvatarMoverProcess *mover = getTwinStickMover();
-+		if (mover ? mover->getTwinStickTarget() != item :
-+			actordir != _lastTargetDir || dirtoitem != _lastTargetDir) {
- 			spriteproc->terminate();
- 			_reticleSpriteProcess = 0;
- 			clearSprite();
 diff --git a/engines/ultima/ultima8/world/actors/cru_stick_input.h b/engines/ultima/ultima8/world/actors/cru_stick_input.h
 new file mode 100644
 index 00000000..3df2ea57
@@ -875,10 +1582,10 @@ index 00000000..3df2ea57
 +#endif
 diff --git a/engines/ultima/ultima8/world/actors/cru_twin_stick_math.h b/engines/ultima/ultima8/world/actors/cru_twin_stick_math.h
 new file mode 100644
-index 00000000..728fb10b
+index 00000000..74242d1d
 --- /dev/null
 +++ b/engines/ultima/ultima8/world/actors/cru_twin_stick_math.h
-@@ -0,0 +1,65 @@
+@@ -0,0 +1,75 @@
 +/* ScummVM - Graphic Adventure Engine
 + *
 + * ScummVM is the legal property of its developers, whose names
@@ -938,12 +1645,198 @@ index 00000000..728fb10b
 +		return eightDirections ? ((angle + 2250) / 4500 * 2) % 16 :
 +			((angle + 1125) / 2250) % 16;
 +	}
++
++	static int stableBodyDirection(int32 angle, bool eightDirections, int previous) {
++		int32 delta = (angle - previous * 2250 + 54000) % 36000 - 18000;
++		// Hold a pose slightly past its sector boundary; projectile aim stays continuous.
++		int32 limit = eightDirections ? 3000 : 1500;
++		if (previous >= 0 && previous < 16 && (!eightDirections || !(previous & 1)) &&
++			delta > -limit && delta < limit)
++			return previous;
++		return bodyDirection(angle, eightDirections);
++	}
 +};
 +
 +} // End of namespace Ultima8
 +} // End of namespace Ultima
 +
 +#endif
+diff --git a/engines/ultima/ultima8/world/camera_process.cpp b/engines/ultima/ultima8/world/camera_process.cpp
+index e9ff4825..4dbba148 100644
+--- a/engines/ultima/ultima8/world/camera_process.cpp
++++ b/engines/ultima/ultima8/world/camera_process.cpp
+@@ -20,10 +20,12 @@
+  */
+ 
+ #include "ultima/ultima8/world/camera_process.h"
++#include "common/config-manager.h"
+ #include "ultima/ultima8/world/world.h"
+ #include "ultima/ultima8/world/current_map.h"
+ #include "ultima/ultima8/world/coord_utils.h"
+ #include "ultima/ultima8/world/actors/actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/kernel/kernel.h"
+ #include "ultima/ultima8/ultima8.h"
+ #include "ultima/ultima8/world/get_object.h"
+@@ -199,6 +201,7 @@ void CameraProcess::itemMoved() {
+ }
+ 
+ Point3 CameraProcess::GetLerped(int32 factor, bool noupdate) {
++	const int32 renderFactor = factor;
+ 	Point3 pt;
+ 	if (_time == 0) {
+ 		if (!noupdate) {
+@@ -268,6 +271,25 @@ Point3 CameraProcess::GetLerped(int32 factor, bool noupdate) {
+ 		pt.z = ((ls.z * (256 - factor) + le.z * factor) >> 8);
+ 	}
+ 
++	// SnapProcess follows the player's simulation position. Render its centre
++	// with the same interpolated transform as the avatar, regardless of tick order.
++	Ultima8Engine *engine = Ultima8Engine::get_instance();
++	const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(engine->getAvatarMoverProcess());
++	Actor *avatar = getControlledActor();
++	if (!noupdate && !_time && (!_itemNum || _itemNum == kMainActorId) &&
++		GAME_IS_REMORSE && mover && mover->isTwinStickEnabled() &&
++		ConfMan.getBool("camera_on_player") && !engine->isAvatarInStasis() &&
++		avatar && avatar->getObjId() == kMainActorId && avatar->hasFlags(Item::FLG_FASTAREA)) {
++		avatar->setupLerp(Kernel::get_instance()->getFrameNum());
++		avatar->doLerp(renderFactor);
++		if (_itemNum) {
++			pt = avatar->getLerped();
++			pt.z += 20;
++		} else {
++			pt = avatar->getCentre() + avatar->getLerped() - avatar->getLocation();
++		}
++	}
++
+ 	if (_earthquake) {
+ 		pt.x += 2 * _eqX + 4 * _eqY;
+ 		pt.y += -2 * _eqX + 4 * _eqY;
+diff --git a/engines/ultima/ultima8/world/item.cpp b/engines/ultima/ultima8/world/item.cpp
+index 837c433c..54803c54 100644
+--- a/engines/ultima/ultima8/world/item.cpp
++++ b/engines/ultima/ultima8/world/item.cpp
+@@ -57,6 +57,7 @@
+ #include "ultima/ultima8/world/super_sprite_process.h"
+ #include "ultima/ultima8/audio/audio_process.h"
+ #include "ultima/ultima8/world/actors/main_actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/world/actors/attack_process.h"
+ #include "ultima/ultima8/world/missile_tracker.h"
+ #include "ultima/ultima8/world/crosshair_process.h"
+@@ -1314,8 +1315,17 @@ uint16 Item::fireWeapon(int32 x, int32 y, int32 z, Direction dir, int firetype,
+ 		}
+ 	}
+ 
++	const CruAvatarMoverProcess *twinMover = nullptr;
++	if (this == getControlledActor() && getObjId() == kMainActorId) {
++		const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
++			Ultima8Engine::get_instance()->getAvatarMoverProcess());
++		if (mover && mover->isTwinStickEnabled())
++			twinMover = mover;
++	}
+ 	if (findtarget) {
+-		if (this != getControlledActor()) {
++		if (twinMover) {
++			target = twinMover->getTwinStickTarget();
++		} else if (this != getControlledActor()) {
+ 			if (GAME_IS_REMORSE || !thisactor)
+ 				target = getControlledActor();
+ 			// else already set above to attackproc target
+@@ -1346,6 +1356,8 @@ uint16 Item::fireWeapon(int32 x, int32 y, int32 z, Direction dir, int firetype,
+ 			// Shoot toward the target
+ 			ss = t;
+ 			findtarget = true;
++		} else if (twinMover && twinMover->getTwinStickAimPoint(pt, ss)) {
++			// Read current stick aim rather than the previous crosshair frame.
+ 		} else if (this == getControlledActor() && crosshair) {
+ 			// Shoot toward the crosshair
+ 			ss = crosshair->getLocation();
+diff --git a/engines/ultima/ultima8/world/item_sorter.cpp b/engines/ultima/ultima8/world/item_sorter.cpp
+index 81332055..a0f02202 100644
+--- a/engines/ultima/ultima8/world/item_sorter.cpp
++++ b/engines/ultima/ultima8/world/item_sorter.cpp
+@@ -34,6 +34,7 @@
+ // temp
+ #include "ultima/ultima8/world/actors/weapon_overlay.h"
+ #include "ultima/ultima8/world/actors/main_actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/world/get_object.h"
+ // --
+ 
+@@ -137,6 +138,15 @@ void ItemSorter::AddItem(const Point3 &pt, uint32 shapeNum, uint32 frame_num, ui
+ 	// Worldspace bounding box
+ 	Box box(pt.x, pt.y, pt.z, xd, yd, zd);
+ 	si->setBoxBounds(box, _camSx, _camSy);
++	if (GAME_IS_REMORSE && itemNum == kMainActorId && shapeNum == 1) {
++		const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
++			Ultima8Engine::get_instance()->getAvatarMoverProcess());
++		if (mover) {
++			const Point3 offset = mover->getTwinStickRenderOffset();
++			si->_sxBot += (offset.x - offset.y) / 4;
++			si->_syBot += (offset.x + offset.y) / 8;
++		}
++	}
+ 
+ 	// Real Screenspace from shape frame
+ 	if (si->_flags & Item::FLG_FLIPPED) {
+diff --git a/engines/ultima/ultima8/world/target_reticle_process.cpp b/engines/ultima/ultima8/world/target_reticle_process.cpp
+index cb43cdc7..1e88bdbb 100644
+--- a/engines/ultima/ultima8/world/target_reticle_process.cpp
++++ b/engines/ultima/ultima8/world/target_reticle_process.cpp
+@@ -25,6 +25,7 @@
+ #include "ultima/ultima8/games/game_data.h"
+ #include "ultima/ultima8/kernel/kernel.h"
+ #include "ultima/ultima8/world/actors/actor.h"
++#include "ultima/ultima8/world/actors/cru_avatar_mover_process.h"
+ #include "ultima/ultima8/world/target_reticle_process.h"
+ #include "ultima/ultima8/world/sprite_process.h"
+ #include "ultima/ultima8/world/world.h"
+@@ -38,6 +39,13 @@ TargetReticleProcess *TargetReticleProcess::_instance = nullptr;
+ 
+ DEFINE_RUNTIME_CLASSTYPE_CODE(TargetReticleProcess)
+ 
++static const CruAvatarMoverProcess *getTwinStickMover() {
++	Actor *actor = getControlledActor();
++	const CruAvatarMoverProcess *mover = dynamic_cast<CruAvatarMoverProcess *>(
++		Ultima8Engine::get_instance()->getAvatarMoverProcess());
++	return mover && mover->isTwinStickEnabled() && actor && actor->getObjId() == kMainActorId ? mover : nullptr;
++}
++
+ TargetReticleProcess::TargetReticleProcess() : Process(), _reticleEnabled(true),
+ 		_lastUpdate(0), _reticleSpriteProcess(0), _lastTargetDir(dir_current), _lastTargetItem(0),
+ 		_reticleStyle(0) {
+@@ -79,7 +87,7 @@ void TargetReticleProcess::run() {
+ 			putTargetReticleOnItem(target, true);
+ 	}
+ 
+-	if (frameno - _lastUpdate < 2 * Kernel::FRAMES_PER_SECOND) {
++	if (!getTwinStickMover() && frameno - _lastUpdate < 2 * Kernel::FRAMES_PER_SECOND) {
+ 		return;
+ 	}
+ 
+@@ -103,7 +111,9 @@ bool TargetReticleProcess::findTargetItem() {
+ 
+ 	Point3 pt = mainactor->getLocation();
+ 
+-	Item *item = currentmap->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
++	const CruAvatarMoverProcess *mover = getTwinStickMover();
++	Item *item = mover ? mover->getTwinStickTarget() :
++		currentmap->findBestTargetItem(pt.x, pt.y, pt.z, dir, dirmode_16dirs);
+ 
+ 	if (item && item->getObjId() != _lastTargetItem) {
+ 		Item *lastItem = getItem(_lastTargetItem);
+@@ -171,7 +181,9 @@ void TargetReticleProcess::itemMoved(Item *item) {
+ 	SpriteProcess *spriteproc = dynamic_cast<SpriteProcess *>(Kernel::get_instance()->getProcess(_reticleSpriteProcess));
+ 
+ 	if (spriteproc) {
+-		if (actordir != _lastTargetDir || dirtoitem != _lastTargetDir) {
++		const CruAvatarMoverProcess *mover = getTwinStickMover();
++		if (mover ? mover->getTwinStickTarget() != item :
++			actordir != _lastTargetDir || dirtoitem != _lastTargetDir) {
+ 			spriteproc->terminate();
+ 			_reticleSpriteProcess = 0;
+ 			clearSprite();
 diff --git a/test/engines/ultima/ultima8/world/cru_stick_input.h b/test/engines/ultima/ultima8/world/cru_stick_input.h
 new file mode 100644
 index 00000000..4885b440
@@ -1050,10 +1943,10 @@ index 00000000..4885b440
 +};
 diff --git a/test/engines/ultima/ultima8/world/cru_twin_stick_math.h b/test/engines/ultima/ultima8/world/cru_twin_stick_math.h
 new file mode 100644
-index 00000000..442e7943
+index 00000000..d0d74620
 --- /dev/null
 +++ b/test/engines/ultima/ultima8/world/cru_twin_stick_math.h
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,56 @@
 +#include <cxxtest/TestSuite.h>
 +#include "engines/ultima/ultima8/world/actors/cru_twin_stick_math.h"
 +
@@ -1096,5 +1989,17 @@ index 00000000..442e7943
 +		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(35999, false), 0);
 +		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(6500, true), 2);
 +		TS_ASSERT_EQUALS(CruTwinStickMath::bodyDirection(6500, false), 3);
++	}
++
++	void testPoseHysteresisHoldsAcrossSectorJitterAndWraps() {
++		using Ultima::Ultima8::CruTwinStickMath;
++		const int cases[][4] = {
++			{2200, 1, 0, 0}, {2300, 1, 0, 0}, {2999, 1, 0, 0}, {3000, 1, 0, 2},
++			{34000, 1, 0, 0}, {32999, 1, 0, 14}, {2300, 1, 2, 2}, {1499, 1, 2, 0},
++			{1100, 0, 0, 0}, {1200, 0, 0, 0}, {1500, 0, 0, 1}, {35999, 0, 0, 0},
++			{2250, 1, 1, 2}, {9000, 0, -1, 4}
++		};
++		for (uint i = 0; i < ARRAYSIZE(cases); ++i)
++			TS_ASSERT_EQUALS(CruTwinStickMath::stableBodyDirection(cases[i][0], cases[i][1], cases[i][2]), cases[i][3]);
 +	}
 +};

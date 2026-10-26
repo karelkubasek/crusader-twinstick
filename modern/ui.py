@@ -6,12 +6,15 @@ from pathlib import Path
 import subprocess
 import queue
 import threading
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from . import core
 from .install import import_game, installation_status, InstallCancelled
 from .home import GamePage
+from .session import detect_session, SessionMode
+from .navigation import Navigation
 from .diagram import ACCENT, BG, CARD, LINE, MUTED, TEAL, TEXT, controller_scene
 
 
@@ -22,12 +25,15 @@ class TwinStickApp:
         self.process = None
         self.install_state = installation_status()
         self._install_thread = None
+        self.install_phase = "idle"
+        self.install_result = None
         self._install_cancel = threading.Event()
         self._install_events = queue.Queue()
         self._closing = False
         self.saved = core.load_settings()
         self.enabled = tk.BooleanVar(value=self.saved["enabled"])
         self.fullscreen = tk.BooleanVar(value=self.saved["fullscreen"])
+        self.skip_intro = tk.BooleanVar(value=self.saved["skip_intro"])
         tuning_keys = ("deadzone", "aim_deadzone", "hysteresis")
         self.values = {key: tk.StringVar(value=str(self.saved[key])) for key in tuning_keys}
         self.scales = {key: tk.DoubleVar(value=self.saved[key]) for key in self.values}
@@ -38,6 +44,8 @@ class TwinStickApp:
         self.layout_hint = tk.StringVar()
         self.editable = []
         self.pad = self.controller = None
+        self.navigation = Navigation()
+        self._reconnect_at = 0
         self._dragging = False
         self._axes = (0.0, 0.0)
         self._active = self._walking = False
@@ -53,65 +61,71 @@ class TwinStickApp:
         root.protocol("WM_DELETE_WINDOW", self.close)
         root.bind("<Control-s>", lambda _event: self.save())
 
-        body = ttk.Frame(root, padding=(22, 16))
+        self._page_index = 0
+        self.page_title = tk.StringVar(value="Crusader Twin Stick")
+        body = ttk.Frame(root, padding=(26, 18))
         body.pack(fill="both", expand=True)
         body.columnconfigure(0, weight=1)
         body.rowconfigure(1, weight=1)
         header = ttk.Frame(body)
-        header.grid(row=0, column=0, sticky="ew", pady=(0, 15))
-        header.columnconfigure(0, weight=1)
-        ttk.Label(header, text="CRUSADER: NO REMORSE", style="Title.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Label(header, textvariable=self.badge, style="Badge.TLabel", padding=(12, 6)).grid(row=0, column=1)
-        ttk.Button(header, text="About…", command=self.about).grid(row=0, column=2, padx=(10, 0))
+        header.grid(row=0, column=0, sticky="ew", pady=(0, 12))
+        header.columnconfigure(1, weight=1)
+        self.back_button = ttk.Button(header, text="Back", command=lambda: self.notebook.select(0))
+        self.back_button.grid(row=0, column=0, padx=(0, 14))
+        self.back_button.grid_remove()
+        ttk.Label(header, textvariable=self.page_title, style="Heading.TLabel").grid(row=0, column=1, sticky="w")
+        ttk.Label(header, textvariable=self.badge, style="Badge.TLabel", padding=(12, 6)).grid(row=0, column=2)
+        self.about_button = ttk.Button(header, text="About…", command=self.about)
+        self.about_button.grid(row=0, column=3, padx=(10, 0))
+        self.about_button.grid_remove()
 
-        notebook = self.notebook = ttk.Notebook(body)
+        notebook = self.notebook = ttk.Notebook(body, style="Hub.TNotebook", takefocus=False)
         notebook.grid(row=1, column=0, sticky="nsew")
         self.home = GamePage(notebook, self)
         controls = ttk.Frame(notebook, padding=(0, 10, 0, 0))
         self.controls_tab = controls
-        movement = ttk.Frame(notebook, padding=(0, 14, 0, 0))
-        notebook.add(self.home, text="  Game  ")
-        notebook.add(controls, text="  Controller layout  ")
-        notebook.add(movement, text="  Movement & feel  ")
+        movement = ttk.Frame(notebook, padding=(0, 10, 0, 0))
+        notebook.add(self.home, text="Game")
+        notebook.add(controls, text="Controller layout")
+        notebook.add(movement, text="Settings")
         self._controls_page(controls)
         self._movement_page(movement)
 
-        notice = ttk.Frame(body, style="Card.TFrame", padding=(12, 9))
-        notice.grid(row=2, column=0, sticky="ew", pady=(12, 12))
-        ttk.Label(notice, text="STEAM DECK", style="Notice.TLabel").pack(side="left", padx=(0, 12))
-        ttk.Label(notice, text="In Desktop Mode, hold ≡ Menu to select Gamepad controls.", style="Card.TLabel").pack(side="left")
+        self.session_mode = detect_session()
+        self.notice = ttk.Frame(body, style="Card.TFrame", padding=(14, 9))
+        if self.session_mode is not SessionMode.GAMING:
+            self.notice.grid(row=2, column=0, sticky="ew", pady=(12, 10))
+        ttk.Label(self.notice, text="Desktop Mode", style="Notice.TLabel").pack(side="left", padx=(0, 14))
+        ttk.Label(self.notice, text="Hold Menu to select Gamepad controls.", style="Card.TLabel").pack(side="left")
 
         footer = ttk.Frame(body)
-        footer.grid(row=3, column=0, sticky="ew")
+        footer.grid(row=3, column=0, sticky="ew", pady=(5, 0))
         footer.columnconfigure(0, weight=1)
-        self.status_label = ttk.Label(footer, textvariable=self.status, style="Muted.TLabel", wraplength=510)
-        self.status_label.grid(row=0, column=0, sticky="w", padx=(0, 12))
-        self.status_label.bind("<Configure>", lambda event: self.status_label.configure(wraplength=max(220, event.width)))
-        self.fullscreen_check = ttk.Checkbutton(footer, text="Fullscreen", variable=self.fullscreen)
-        self.fullscreen_check.grid(row=1, column=0, sticky="w", pady=(5, 0))
-        self.editable.append(self.fullscreen_check)
+        self.status_label = ttk.Label(footer, textvariable=self.status, style="Muted.TLabel", wraplength=700)
+        self.status_label.grid(row=0, column=0, sticky="ew", padx=(0, 14))
+        self.status_label.bind("<Configure>", lambda event: self.status_label.configure(wraplength=max(160, event.width)))
         actions = ttk.Frame(footer)
-        actions.grid(row=0, column=1, rowspan=2)
-        self.remap_button = ttk.Button(actions, text="Remap buttons…", command=lambda: self.start(True))
-        self.remap_button.pack(side="left", padx=(0, 8))
-        self.save_button = ttk.Button(actions, text="Save", command=self.save)
-        self.save_button.pack(side="left", padx=(0, 8))
+        actions.grid(row=0, column=1)
+        self.save_button = ttk.Button(actions, text="Save changes", command=self.save)
+        self.save_button.pack(side="left", padx=(0, 10))
         self.play_button = ttk.Button(actions, text="Play", command=self.start, style="Primary.TButton")
-        self.play_button.pack(side="left")
+        ttk.Label(footer, text="D-pad navigate · A select · B back · LB / RB pages", style="Muted.TLabel",
+                  font=("Noto Sans", 9)).grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
         notebook.bind("<<NotebookTabChanged>>", self._tab_changed)
 
-        for variable in (*self.values.values(), self.enabled, self.fullscreen):
+        for variable in (*self.values.values(), self.enabled, self.fullscreen, self.skip_intro):
             variable.trace_add("write", self._refresh)
         self._refresh_layout()
         self._refresh()
         self._open_pad()
         self.home.refresh()
+        root.after(150, self.home.focus_primary)
         root.after(100, self._poll_stick)
 
     def _style(self):
         style = ttk.Style(self.root)
         style.theme_use("clam")
-        style.configure(".", background=BG, foreground=TEXT, font=("Noto Sans", 10))
+        style.configure(".", background=BG, foreground=TEXT, font=("Noto Sans", 10, "normal"))
         style.configure("TFrame", background=BG)
         style.configure("Card.TFrame", background=CARD)
         style.configure("TLabel", background=BG, foreground=TEXT)
@@ -120,6 +134,14 @@ class TwinStickApp:
         style.configure("Heading.TLabel", font=("Noto Sans", 12, "bold"))
         style.configure("Badge.TLabel", background=CARD, foreground=ACCENT, font=("Noto Sans", 10, "bold"))
         style.configure("Card.TLabel", background=CARD, foreground=TEXT)
+        style.configure("HeroTitle.TLabel", background=CARD, foreground=TEXT, font=("Noto Sans", 42, "bold"))
+        style.configure("ImportTitle.TLabel", background=CARD, foreground=TEXT, font=("Noto Sans", 30, "bold"))
+        style.configure("ImportSubtitle.TLabel", background=CARD, foreground=TEXT, font=("Noto Sans", 18))
+        style.configure("HeroSubtitle.TLabel", background=CARD, foreground=TEXT, font=("Noto Sans", 26))
+        style.configure("Ready.TLabel", background=CARD, foreground=ACCENT, font=("Noto Sans", 11, "bold"))
+        style.configure("CardMuted.TLabel", background=CARD, foreground=MUTED, font=("Noto Sans", 11))
+        style.configure("Hub.TNotebook", background=BG, borderwidth=0, tabmargins=0)
+        style.layout("Hub.TNotebook.Tab", [])
         style.configure("Notice.TLabel", background=CARD, foreground=ACCENT, font=("Noto Sans", 9, "bold"))
         style.configure("Error.TLabel", foreground="#ffb2a5")
         style.configure("TNotebook", background=BG, borderwidth=0, tabmargins=0,
@@ -127,25 +149,43 @@ class TwinStickApp:
         style.configure("TNotebook.Tab", background=CARD, foreground=MUTED, padding=(14, 10),
                         font=("Noto Sans", 11, "bold"), borderwidth=0,
                         bordercolor=BG, lightcolor=BG, darkcolor=BG)
-        style.map("TNotebook.Tab", background=[("selected", "#2a3d4d")], foreground=[("selected", TEXT)],
+        style.map("TNotebook.Tab", background=[("selected", "#592c24")], foreground=[("selected", TEXT)],
                   lightcolor=[("selected", BG), ("!selected", BG)], padding=[("selected", (14, 10))])
-        style.configure("TButton", background="#293d4c", foreground=TEXT, padding=(14, 11),
+        style.configure("TButton", background="#3d2923", foreground=TEXT, padding=(14, 13),
                         borderwidth=0, font=("Noto Sans", 10, "bold"), focuscolor=ACCENT)
-        style.map("TButton", background=[("active", "#375466"), ("disabled", CARD)],
-                  foreground=[("disabled", "#708391")])
-        style.configure("Primary.TButton", background=ACCENT, foreground="#171e23", padding=(23, 11))
-        style.map("Primary.TButton", background=[("active", "#ffd187"), ("disabled", "#594c36")],
+        style.map("TButton", background=[("active", "#59382c"), ("disabled", CARD)],
+                  foreground=[("disabled", "#a38c7e")])
+        style.configure("Primary.TButton", background=ACCENT, foreground="#1a100c", padding=(23, 11),
+                        focuscolor="#1a100c", focusthickness=2)
+        style.map("Primary.TButton", background=[("active", "#ffa764"), ("disabled", "#603c29")],
                   foreground=[("disabled", MUTED)])
-        style.configure("TCheckbutton", background=BG, foreground=TEXT, padding=(0, 5),
-                        indicatorbackground=CARD, indicatorforeground=ACCENT)
+        style.configure("Hub.TButton", background="#3d2923", foreground=TEXT, padding=(18, 23),
+                        font=("Noto Sans", 14, "bold"), borderwidth=2, focuscolor=TEXT, focusthickness=2,
+                        bordercolor=LINE, lightcolor=LINE, darkcolor=LINE)
+        style.configure("HubPrimary.TButton", background="#a73928", foreground=TEXT, padding=(18, 23),
+                        font=("Noto Sans", 16, "bold"), borderwidth=2, focuscolor=TEXT, focusthickness=2,
+                        bordercolor="#a73928", lightcolor="#a73928", darkcolor="#a73928")
+        style.map("Hub.TButton", bordercolor=[("focus", ACCENT), ("!focus", LINE)],
+                  lightcolor=[("focus", ACCENT), ("!focus", LINE)], darkcolor=[("focus", ACCENT), ("!focus", LINE)])
+        style.map("HubPrimary.TButton", background=[("disabled", CARD), ("active", "#bd4932"), ("!disabled", "#a73928")],
+                  foreground=[("disabled", MUTED)], bordercolor=[("focus", ACCENT), ("!focus", "#a73928")],
+                  lightcolor=[("focus", ACCENT), ("!focus", "#a73928")],
+                  darkcolor=[("focus", ACCENT), ("!focus", "#a73928")])
+        style.configure("Quiet.TButton", background=BG, foreground=MUTED, padding=(10, 12), borderwidth=0)
+        style.configure("TCheckbutton", background=BG, foreground=TEXT, padding=(6, 12), font=("Noto Sans", 11),
+                        indicatorbackground=CARD, indicatorforeground=ACCENT,
+                        focuscolor=ACCENT, focusthickness=2, focussolid=False)
         style.map("TCheckbutton", background=[("active", BG)], foreground=[("disabled", MUTED)])
-        style.configure("TSpinbox", fieldbackground=CARD, foreground=TEXT, background="#293d4c",
-                        arrowcolor=TEXT, padding=(6, 7), bordercolor=LINE, insertcolor=TEXT)
-        style.configure("Horizontal.TScale", background=ACCENT, troughcolor="#2a3e4e", bordercolor=BG,
-                        lightcolor=BG, darkcolor=BG, arrowsize=22, sliderlength=30,
-                        gripcount=0, borderwidth=0)
-        style.map("Horizontal.TScale", background=[("disabled", "#607382")],
-                  bordercolor=[("!disabled", BG)], lightcolor=[("!disabled", BG)], darkcolor=[("!disabled", BG)])
+        style.configure("TSpinbox", fieldbackground=CARD, foreground=TEXT, background="#3d2923",
+                        arrowcolor=TEXT, padding=(6, 12), bordercolor=LINE, insertcolor=TEXT)
+        style.map("TSpinbox", bordercolor=[("focus", ACCENT), ("!focus", LINE)],
+                  lightcolor=[("focus", ACCENT), ("!focus", LINE)], darkcolor=[("focus", ACCENT), ("!focus", LINE)])
+        style.configure("Horizontal.TScale", background=ACCENT, troughcolor="#432b24", bordercolor=BG,
+                        lightcolor=BG, darkcolor=BG, arrowsize=44, sliderlength=38,
+                        gripcount=0, borderwidth=2)
+        style.map("Horizontal.TScale", background=[("disabled", "#8f6b58")],
+                  bordercolor=[("focus", ACCENT), ("!disabled", BG)],
+                  lightcolor=[("focus", ACCENT), ("!disabled", BG)], darkcolor=[("focus", ACCENT), ("!disabled", BG)])
 
     def _controls_page(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -154,7 +194,9 @@ class TwinStickApp:
         heading.grid(row=0, column=0, sticky="ew", padx=4, pady=(0, 2))
         heading.columnconfigure(0, weight=1)
         ttk.Label(heading, textvariable=self.layout_hint, style="Muted.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Button(heading, text="Export SVG…", command=self.export_diagram).grid(row=0, column=1, padx=(10, 0))
+        self.remap_button = ttk.Button(heading, text="Remap buttons…", command=lambda: self.start(True))
+        self.remap_button.grid(row=0, column=1, padx=(10, 0))
+        ttk.Button(heading, text="Export SVG…", command=self.export_diagram).grid(row=0, column=2, padx=(10, 0))
         self.diagram = tk.Canvas(parent, background=BG, highlightthickness=0, width=1000, height=390)
         self.diagram.grid(row=1, column=0, sticky="nsew")
         self.diagram.bind("<Configure>", lambda _event: self.scene.draw(self.diagram))
@@ -187,13 +229,15 @@ class TwinStickApp:
         for color, text in legend_rows:
             row = ttk.Frame(legend)
             row.pack(anchor="w", pady=2)
-            tk.Label(row, text="●", foreground=color, background=BG).pack(side="left", padx=(0, 8))
+            swatch = tk.Canvas(row, width=12, height=12, background=BG, highlightthickness=0)
+            swatch.create_oval(2, 2, 10, 10, fill=color, outline=color)
+            swatch.pack(side="left", padx=(0, 8))
             ttk.Label(row, text=text, style="Muted.TLabel").pack(side="left")
 
         settings = ttk.Frame(parent, padding=(20, 0, 4, 0))
         settings.grid(row=0, column=1, sticky="nsew")
         settings.columnconfigure(0, weight=1)
-        enabled = ttk.Checkbutton(settings, text="Enable twin-stick controls", variable=self.enabled)
+        enabled = self.enable_check = ttk.Checkbutton(settings, text="Enable twin-stick controls", variable=self.enabled)
         enabled.grid(row=0, column=0, sticky="w", pady=(0, 8))
         self.editable.append(enabled)
         rows = (("deadzone", "Move deadzone", "Move immediately beyond this threshold.", 1, 98),
@@ -202,16 +246,17 @@ class TwinStickApp:
         for index, (key, title, help_text, low, high) in enumerate(rows):
             row = ttk.Frame(settings)
             row.grid(row=index+1, column=0, sticky="ew", pady=(0, 3))
-            row.columnconfigure(0, weight=1)
+            row.columnconfigure(0, minsize=158)
+            row.columnconfigure(1, weight=1)
             ttk.Label(row, text=title, style="Heading.TLabel").grid(row=0, column=0, sticky="w")
-            entry = ttk.Spinbox(row, from_=low, to=high, textvariable=self.values[key], width=4, justify="center")
-            entry.grid(row=0, column=1, rowspan=2, padx=(12, 4))
-            ttk.Label(row, text="%", style="Muted.TLabel").grid(row=0, column=2, rowspan=2)
             ttk.Label(row, text=help_text, style="Muted.TLabel", font=("Noto Sans", 9),
-                      wraplength=330).grid(row=1, column=0, sticky="w", pady=(1, 2))
+                      wraplength=155).grid(row=1, column=0, sticky="w", pady=(2, 3))
             scale = ttk.Scale(row, from_=low, to=high, variable=self.scales[key],
                               command=lambda value, name=key: self.values[name].set(str(round(float(value)))))
-            scale.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(2, 0))
+            scale.grid(row=0, column=1, rowspan=2, sticky="ew", padx=(12, 10), pady=(3, 3))
+            entry = ttk.Spinbox(row, from_=low, to=high, textvariable=self.values[key], width=4, justify="center")
+            entry.grid(row=0, column=2, rowspan=2, padx=(0, 4))
+            ttk.Label(row, text="%", style="Muted.TLabel").grid(row=0, column=3, rowspan=2)
             self.editable.extend((entry, scale))
         self.release_hint = tk.StringVar()
         ttk.Label(settings, textvariable=self.release_hint, style="Muted.TLabel", wraplength=430).grid(row=4, column=0, sticky="w")
@@ -224,7 +269,8 @@ class TwinStickApp:
             settings = {key: int(variable.get()) for key, variable in self.values.items()}
         except ValueError:
             raise ValueError("Use whole percentages for the stick settings.") from None
-        return core.validate({**core.DEFAULTS, **settings, "enabled": self.enabled.get(), "fullscreen": self.fullscreen.get()})
+        return core.validate({**core.DEFAULTS, **settings, "enabled": self.enabled.get(),
+                              "fullscreen": self.fullscreen.get(), "skip_intro": self.skip_intro.get()})
 
     def _refresh(self, *_args):
         if self._suspend_refresh:
@@ -240,8 +286,9 @@ class TwinStickApp:
                                   f"Aim releases below {settings['aim_deadzone'] - cushion}%.")
             dirty = settings != self.saved
             self.status.set("Unsaved changes. Save or play to apply them." if dirty else
+                            self.install_result if self.install_result else
                             "Ready to play. Settings apply on the next launch." if self.install_state.ready else
-                            "Choose your game files on the Game tab.")
+                            "Choose your game files to get started.")
             self.status_label.configure(style="Muted.TLabel")
         except ValueError as error:
             dirty, valid = True, False
@@ -249,7 +296,15 @@ class TwinStickApp:
             self.status_label.configure(style="Error.TLabel")
             self.release_hint.set("Adjust the thresholds to update the preview.")
         running = self.is_installing() or (self.process is not None and self.process.poll() is None)
-        self.badge.set("Running" if running else "Unsaved changes" if dirty else "Saved")
+        if self.is_installing():
+            cancelling = self.install_phase == "cancelling"
+            self.status.set("Cancelling installation and cleaning temporary files…" if cancelling else
+                            "Installing game files. Your saves and controller settings are preserved.")
+            badge = "Cancelling" if cancelling else "Installing"
+        else:
+            badge = "Running" if running else "Unsaved changes" if dirty else {
+                "failed": "Import failed", "cancelled": "Cancelled", "complete": "Installed"}.get(self.install_phase, "Saved")
+        self.badge.set(badge)
         for widget in self.editable:
             widget.state(["disabled"] if running else ["!disabled"])
         self.save_button.state(["!disabled"] if valid and not running and dirty else ["disabled"])
@@ -263,21 +318,71 @@ class TwinStickApp:
         self.home.refresh()
 
     def _tab_changed(self, _event=None):
-        if self.notebook.select() == str(self.home):
+        index = self.notebook.index("current")
+        previous = self._page_index
+        self._page_index = index
+        if index == 0:
+            self.page_title.set("Crusader Twin Stick")
+            self.back_button.grid_remove()
+            self.about_button.grid_remove()
             self.play_button.pack_forget()
+            if self.install_state.ready and not self.home._show_import and previous in (1, 2):
+                (self.home.controls if previous == 1 else self.home.settings_button).focus_set()
+            else:
+                self.home.focus_primary()
         else:
+            self.page_title.set("Controller layout" if index == 1 else "Settings")
+            self.back_button.grid()
+            self.about_button.grid()
             self.play_button.pack(side="left")
+            (self.remap_button if index == 1 else self.enable_check).focus_set()
 
     def runtime_available(self):
         return core.BINARY.is_file()
 
     def about(self):
-        messagebox.showinfo("About Crusader Twin Stick",
-            "Crusader Twin Stick\nAn unofficial controller launcher for Crusader: No Remorse.\n\n"
-            "Powered by a modified ScummVM engine.\nLauncher and engine changes: GNU GPL version 3 or later.\n\n"
-            "License texts, credits and source information are included with the application.\n"
-            "Crusader game files and artwork belong to their original rights holders and are supplied by you.",
-            parent=self.root)
+        if getattr(self, "about_window", None) is not None and self.about_window.winfo_exists():
+            self.about_window.lift()
+            return
+        previous_focus = self.root.focus_get()
+        dialog = self.about_window = tk.Toplevel(self.root)
+
+        def dismiss():
+            if not dialog.winfo_exists():
+                return
+            dialog.destroy()
+            if previous_focus is not None and previous_focus.winfo_exists() and previous_focus.winfo_ismapped():
+                previous_focus.focus_set()
+            else:
+                self.home.focus_primary()
+
+        dialog.protocol("WM_DELETE_WINDOW", dismiss)
+        dialog.title("About Crusader Twin Stick")
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+        dialog.configure(background=BG)
+        body = ttk.Frame(dialog, padding=24)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text="Crusader Twin Stick", font=("Noto Sans", 18, "bold")).pack(anchor="w")
+        ttk.Label(body, text="An unofficial controller launcher for Crusader: No Remorse.",
+                  style="Muted.TLabel", wraplength=440, justify="left").pack(anchor="w", pady=(6, 18))
+        for title, text in (
+            ("ScummVM engine", "Powered by a locally modified ScummVM engine."),
+            ("GNU GPL version 3 or later", "Applies to the launcher and engine changes. License texts, credits and source information are included with the application."),
+            ("Game resources", "Crusader game files and artwork belong to their original rights holders and are supplied by you."),
+        ):
+            ttk.Label(body, text=title, style="Heading.TLabel").pack(anchor="w", pady=(0, 5))
+            ttk.Label(body, text=text, style="Muted.TLabel", wraplength=440, justify="left").pack(
+                anchor="w", pady=(0, 16))
+        close = ttk.Button(body, text="Close", command=dismiss, style="Primary.TButton")
+        close.pack(anchor="e", pady=(4, 0))
+        dialog.bind("<Escape>", lambda _event: dismiss())
+        dialog.bind("<Return>", lambda _event: dismiss())
+        dialog.update_idletasks()
+        x = self.root.winfo_rootx() + (self.root.winfo_width() - dialog.winfo_reqwidth()) // 2
+        y = self.root.winfo_rooty() + (self.root.winfo_height() - dialog.winfo_reqheight()) // 2
+        dialog.geometry(f"+{max(0, x)}+{max(0, y)}")
+        close.focus_set()
 
     def is_installing(self):
         return self._install_thread is not None
@@ -288,6 +393,8 @@ class TwinStickApp:
         if not self.save():
             return
         self._install_cancel.clear()
+        self.install_phase = "installing"
+        self.install_result = None
         self.home.progress["value"] = 0
 
         def work():
@@ -301,11 +408,14 @@ class TwinStickApp:
         self._install_thread = threading.Thread(target=work, daemon=True)
         self._install_thread.start()
         self._refresh()
+        self.home.focus_primary()
         self.root.after(100, self._poll_install)
 
     def cancel_import(self):
+        self.install_phase = "cancelling"
         self._install_cancel.set()
         self.home.message.set("Cancelling and cleaning temporary files…")
+        self._refresh()
 
     def _poll_install(self):
         finished = False
@@ -321,18 +431,26 @@ class TwinStickApp:
                 self.install_state = event[1]
                 self.home._show_import = False
                 self.home.message.set("Installed. Your source files, saves and controller settings are preserved.")
-                self.status.set("Ready to play.")
+                self.install_phase = "complete"
+                self.install_result = "Installation complete. Ready to play."
                 finished = True
             elif event[0] == "error":
                 self.install_state = installation_status()
                 self.home.message.set(str(event[1]))
-                self.status.set("Installation cancelled." if isinstance(event[1], InstallCancelled) else "Installation did not complete.")
+                cancelled = isinstance(event[1], InstallCancelled)
+                self.install_phase = "cancelled" if cancelled else "failed"
+                self.install_result = "Installation cancelled. Your previous files are intact." if cancelled else \
+                                      "Installation failed. Choose your game files to try again."
+                if not self.home.message.get():
+                    self.home.message.set(self.install_result)
                 finished = True
         if self._install_thread is not None and self._install_thread.is_alive():
             self.root.after(100, self._poll_install)
             return
         self._install_thread = None
         self._refresh()
+        if self.notebook.select() == str(self.home):
+            self.home.focus_primary()
         if self._closing:
             self.close()
 
@@ -352,7 +470,7 @@ class TwinStickApp:
         self._refresh()
 
     def save(self):
-        if self.process and self.process.poll() is None:
+        if self.is_installing() or (self.process and self.process.poll() is None):
             return False
         try:
             settings = self.settings()
@@ -375,6 +493,9 @@ class TwinStickApp:
             return
         if not self.save():
             return
+        self.install_phase = "idle"
+        self.install_result = None
+        self.home.message.set(self.home.default_message)
         self.status.set("Starting the controller remapping screen…" if launcher else "Starting Crusader…")
         self.root.update_idletasks()
         try:
@@ -406,6 +527,7 @@ class TwinStickApp:
                 variable.set(str(self.saved[key]))
             self.enabled.set(self.saved["enabled"])
             self.fullscreen.set(self.saved["fullscreen"])
+            self.skip_intro.set(self.saved["skip_intro"])
             self._suspend_refresh = False
             self._refresh_layout()
             self._refresh()
@@ -438,16 +560,16 @@ class TwinStickApp:
         x, y, radius = self._zone_geometry()
         settings = self._valid_preview
         threshold = settings["aim_deadzone"] if self.preview_stick.get() == "right" else settings["deadzone"]
-        zones = ((100, "#193932", "#416d60"), (threshold, "#202e3a", "#6d8392"))
+        zones = ((100, "#3c211b", "#ae6751"), (threshold, "#30211c", "#b18d79"))
         for percent, fill, stroke in zones:
             r = radius * percent / 100
             canvas.create_oval(x-r, y-r, x+r, y+r, fill=fill, outline=stroke, width=1.5)
         exits = (threshold - settings["hysteresis"],)
         for percent in exits:
             r = radius * percent / 100
-            canvas.create_oval(x-r, y-r, x+r, y+r, outline="#7c8274", dash=(2, 4))
-        canvas.create_line(x-radius, y, x+radius, y, fill="#476056", dash=(2, 5))
-        canvas.create_line(x, y-radius, x, y+radius, fill="#476056", dash=(2, 5))
+            canvas.create_oval(x-r, y-r, x+r, y+r, outline="#b09b85", dash=(2, 4))
+        canvas.create_line(x-radius, y, x+radius, y, fill="#805447", dash=(2, 5))
+        canvas.create_line(x, y-radius, x, y+radius, fill="#805447", dash=(2, 5))
         canvas.create_text(x, y-radius-13, text="SCREEN UP", fill=MUTED, font=("Noto Sans", 8))
         vx, vy = self._axes
         magnitude = math.hypot(vx, vy)
@@ -460,7 +582,7 @@ class TwinStickApp:
             canvas.create_line(x, y, x+hx*length, y+hy*length, fill=tint, width=3, arrow="last")
         else:
             hx, hy = self._heading
-            canvas.create_line(x, y, x+hx*radius*.6, y+hy*radius*.6, fill="#647580", dash=(3, 4), arrow="last")
+            canvas.create_line(x, y, x+hx*radius*.6, y+hy*radius*.6, fill="#ab8a76", dash=(3, 4), arrow="last")
         canvas.create_oval(px-7, py-7, px+7, py+7, fill=TEXT, outline=tint, width=3)
 
     def _update_stick(self, x, y):
@@ -507,6 +629,7 @@ class TwinStickApp:
                 "SDL_GameControllerClose": (None, [C.c_void_p]),
                 "SDL_GameControllerGetAxis": (C.c_int16, [C.c_void_p, C.c_int]),
                 "SDL_GameControllerGetAttached": (C.c_int, [C.c_void_p]),
+                "SDL_GameControllerGetButton": (C.c_uint8, [C.c_void_p, C.c_int]),
             }
             for name, (result, arguments) in signatures.items():
                 function = getattr(self.pad.sdl, name)
@@ -519,28 +642,74 @@ class TwinStickApp:
                 self.pad = None
 
     def _connect_pad(self):
+        self.navigation = Navigation()
         self.pad.refresh()
-        self.controller = self.pad.sdl.SDL_GameControllerOpen(0) if self.pad.count else None
+        self.controller = self.pad.sdl.SDL_GameControllerOpen(self.pad.index) if self.pad.index is not None else None
         if self.controller:
-            self.stick_hint.set(f"{self.pad.name} · move either stick or drag the dot.")
+            self.stick_hint.set("Move either stick, or drag the dot to preview.")
         else:
             self.stick_hint.set("Connect a controller for live input, or drag the dot.")
 
     def _poll_stick(self):
         if self.pad:
+            self.pad.sdl.SDL_PumpEvents()
             self.pad.sdl.SDL_JoystickUpdate()
             if self.controller and not self.pad.sdl.SDL_GameControllerGetAttached(self.controller):
                 self.pad.sdl.SDL_GameControllerClose(self.controller)
                 self.controller = None
                 self._update_stick(0, 0)
-            if not self.controller:
+            if not self.controller and time.monotonic() >= self._reconnect_at:
                 self._connect_pad()
+                self._reconnect_at = time.monotonic() + 1
             if self.controller and not self._dragging:
                 numbers = (2, 3) if self.preview_stick.get() == "right" else (0, 1)
                 axes = tuple(self.pad.sdl.SDL_GameControllerGetAxis(self.controller, number) / 32768 for number in numbers)
                 if axes != self._axes:
                     self._update_stick(*axes)
-        self.root.after(100, self._poll_stick)
+            buttons = {i for i in (*Navigation.BUTTONS, *Navigation.DIRECTIONS)
+                       if self.controller and self.pad.sdl.SDL_GameControllerGetButton(self.controller, i)}
+            axes = tuple(self.pad.sdl.SDL_GameControllerGetAxis(self.controller, i) / 32768 for i in (0, 1)) if self.controller else (0, 0)
+            try:
+                focused = self.root.focus_displayof()
+                window = focused.winfo_toplevel() if focused else None
+                context = (str(window), self.notebook.select()) if window and not self.process and not self.root.grab_current() else None
+            except (KeyError, tk.TclError):
+                context = None
+            # The movement page reserves both sticks for its live preview.
+            if self.notebook.index("current") == 2:
+                axes = (0, 0)
+            for action in self.navigation.update(buttons, axes, context, time.monotonic()):
+                self._navigate(action)
+        self.root.after(33, self._poll_stick)
+
+    def _navigate(self, action):
+        focused = self.root.focus_get()
+        window = focused.winfo_toplevel() if focused else self.root
+        if action == "back":
+            if window is not self.root:
+                window.event_generate("<Escape>")
+            elif self.is_installing():
+                self.cancel_import()
+            elif self.notebook.select() != str(self.home):
+                self.notebook.select(self.home)
+            elif self.home._show_import:
+                self.home.show_import()
+            else:
+                self.home.focus_primary()
+        elif action in ("previous_page", "next_page") and window is self.root:
+            index = (self.notebook.index("current") + (1 if action == "next_page" else -1)) % len(self.notebook.tabs())
+            self.notebook.select(index)
+        elif action == "confirm" and focused is not None:
+            if isinstance(focused, (ttk.Button, ttk.Checkbutton)) and focused.winfo_ismapped() and not focused.instate(["disabled"]):
+                focused.invoke()
+        elif action in ("left", "right") and isinstance(focused, (ttk.Scale, ttk.Spinbox)):
+            keys = ("<Left>", "<Right>") if isinstance(focused, ttk.Scale) else ("<Down>", "<Up>")
+            focused.event_generate(keys[action == "right"])
+        elif action in ("up", "down", "left", "right"):
+            focused = focused or self.home.play
+            next_widget = focused.tk_focusPrev() if action in ("up", "left") else focused.tk_focusNext()
+            if next_widget:
+                next_widget.focus_set()
 
     def close(self):
         if self.is_installing():
