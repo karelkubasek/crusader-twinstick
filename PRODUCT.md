@@ -6,7 +6,6 @@
 
 Native Linux desktop application, currently Python/Tk with SDL2 controller input.
 Steam Deck Desktop Mode and Gaming Mode are the development priorities.
-The skill's web/iOS/Android platform enum does not describe this application.
 
 ## Users
 
@@ -46,11 +45,12 @@ ship proprietary artwork with source or releases.
 
 ## Evidence on Hand
 
-The runnable launcher, controller diagram, modified ScummVM source and local
-Desktop Mode screenshots are available. Owned resources and saves permit
-isolated gameplay checks. The separate decompiled engine is a reference, not a
-runtime dependency. Actual Gaming Mode and full-campaign verification remain
-open.
+The tracked launcher, controller diagram, engine patch and test drivers describe
+the current implementation. The build script fetches the pinned ScummVM source.
+Owned resources and player-supplied saves permit isolated gameplay checks; they
+are not supplied with the checkout. The public decompiled engine is an optional
+reference, not a runtime dependency. Actual Gaming Mode and full-campaign
+verification remain open.
 
 ## Product Principles
 

@@ -9,6 +9,7 @@ installers=sorted((ROOT/'installers').glob('setup_crusader_no_remorse_*.exe'))
 installer=args.installer.expanduser().resolve() if args.installer else installers[0] if len(installers)==1 else None
 if installer is None or not installer.is_file():
  parser.error('Provide --installer or place one No Remorse installer under installers/.')
+(ROOT/'runtime').mkdir(parents=True,exist_ok=True)
 report={'checks':[]};gui=None;temporary=None;gui_window=None;previous_windows=set()
 
 def check(ok,name,details=None):

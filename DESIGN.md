@@ -168,7 +168,7 @@ components:
 
 The launcher carries Crusader: No Remorse through warm black and brown surfaces, a red Play destination, orange interaction cues, and cream Noto Sans text. Its character comes from the player's original cover and large, readable controls. The interface is a local tool for playing and configuring an owned game.
 
-This is a native Linux desktop application built with Python/Tk, the ttk clam theme, and SDL2 controller input. Tokens describe that implementation: positive Tk font sizes are points, widget padding is in pixels, and the exported controller diagram has its own scalable pixel coordinates. Native geometry and keyboard behavior take precedence over the HTML composition sketch. The sidecar's HTML/CSS components are documentation previews of native patterns, not a web runtime.
+This is a native Linux desktop application built with Python/Tk, the ttk clam theme, and SDL2 controller input. Tokens describe that implementation: positive Tk font sizes are points, widget padding is in pixels, and the exported controller diagram has its own scalable pixel coordinates. Native geometry and keyboard behavior define the interface.
 
 **Key Characteristics:**
 
@@ -177,7 +177,7 @@ This is a native Linux desktop application built with Python/Tk, the ttk clam th
 - Real buttons, checkboxes, numeric fields, and scales support keyboard, mouse, and controller input.
 - Privately supplied artwork remains whole and local; the source and release contain no shipped raster asset.
 
-The record derives from `modern/ui.py`, `modern/home.py`, `modern/diagram.py`, `modern/navigation.py`, and `modern/gamepad.py`, checked against `.impeccable/review/hub-qa.json` and the current local captures. The finish review resolved its five material fixes and returned a ship disposition at that scope. No web/mobile design detector ran. The Gaming layout capture is a Desktop simulation; actual Steam Deck Gaming Mode validation remains open.
+The record derives from [the Tk interface](modern/ui.py), [the hub](modern/home.py), [the controller diagram](modern/diagram.py), [navigation](modern/navigation.py), and [controller input](modern/gamepad.py). Layout and interaction checks covered the documented window sizes in Desktop Mode. Simulating the Gaming layout on a desktop does not establish actual Steam Deck Gaming Mode compatibility; that validation remains open.
 
 ## Colors
 
@@ -251,7 +251,7 @@ Buttons are solid native controls with direct action labels. The hub's red Play 
 
 The title band is a broad, flat rectangular surface containing a black artwork pane and game information. The compact variant serves import and feedback states. Other surface containers are functional: the state badge and session notice. There is no general grid of decorative cards.
 
-Artwork provenance is private and user supplied: the original Crusader cover belongs to its original rights holders. Runtime lookup first uses the player's local `STATE/artwork/launcher.png`, then the installed artwork path. Local sketches and review captures may contain this private reference; they are review evidence, not distribution assets. No proprietary raster is embedded in this design record, source bundle, release, or component preview.
+Artwork provenance is private and user supplied: the original Crusader cover belongs to its original rights holders. Runtime lookup first uses the player's optional `user-data/artwork/launcher.png` (or the equivalent under `CRUSADER_TWINSTICK_HOME`), then artwork imported from their game copy. No proprietary raster is embedded in this design record, source bundle or release.
 
 ### Inputs / Fields
 
@@ -290,7 +290,7 @@ The controller is a generated vector illustration shared by Tk canvas rendering 
 
 ### Don't:
 
-- **Don't** copy the sketch's rounded cards, shadows, SVG button icons, or web typography into the native system by assumption.
+- **Don't** add rounded cards, shadows, button icons or web typography without reviewing their fit with the native interface.
 - **Don't** crop the cover or package proprietary artwork, private screenshots, game files, or saves.
 - **Don't** replace real Tk buttons and checkboxes with decorative game HUD controls or invented status.
 - **Don't** consume movement-stick preview input for page navigation on Settings.
