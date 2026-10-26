@@ -18,31 +18,23 @@ class TwinConfigTests(unittest.TestCase):
         self.addCleanup(self.config.stop)
         self.addCleanup(self.saves.stop)
 
-    def test_default_target_uses_twin_stick_and_has_unique_bindings(self):
-        self.assertEqual(core.TARGET, "remorse-twin-stick")
-        core.save_settings(core.DEFAULTS)
-        self.assertEqual(core.load_settings(), core.DEFAULTS)
-        saved = core.read_config()[core.TARGET]
-        self.assertEqual(saved["crusader_twin_stick"], "true")
-        self.assertEqual(core.controller_labels()["JOY_LEFT_STICK_X-"], ["Move"])
-        self.assertEqual(core.controller_labels()["JOY_RIGHT_STICK_X-"], ["Aim"])
-        owners = {}
-        for action, values in saved.items():
-            if not action.startswith("keymap_"):
-                continue
-            for token in values.split():
-                if token.startswith("JOY_"):
-                    self.assertNotIn(token, owners)
-                    owners[token] = action
+    def test_opening_movies_default_to_skipped_for_existing_configs(self):
+        core.CONFIG.write_text(f"[{core.TARGET}]\ncrusader_modern_controls=true\n")
+        self.assertTrue(core.load_settings()["skip_intro"])
+        core.save_settings(core.load_settings())
+        self.assertTrue(core.read_config()[core.TARGET].getboolean("skip_intro"))
 
-    def test_movement_and_aim_deadzones_validate_independently(self):
-        settings = {**core.DEFAULTS, "deadzone": 60, "aim_deadzone": 20}
-        core.save_settings(settings)
-        self.assertEqual(core.load_settings(), settings)
-        for values in ({"aim_deadzone": 0}, {"aim_deadzone": 99}, {"aim_deadzone": 5}, {"deadzone": 99}):
-            with self.subTest(values=values):
-                with self.assertRaises(ValueError):
-                    core.save_settings({**core.DEFAULTS, **values})
+    def test_movie_preference_survives_other_settings_changes(self):
+        core.save_settings({**core.DEFAULTS, "skip_intro": False})
+        settings = core.load_settings()
+        self.assertFalse(settings["skip_intro"])
+        core.save_settings({**settings, "deadzone": 25, "enabled": False})
+        self.assertFalse(core.read_config()[core.TARGET].getboolean("skip_intro"))
+
+    def test_movie_preference_requires_a_boolean(self):
+        for value in (1, "true", None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                core.save_settings({**core.DEFAULTS, "skip_intro": value})
 
     def test_twin_remapping_survives_threshold_updates(self):
         core.save_settings(core.DEFAULTS)

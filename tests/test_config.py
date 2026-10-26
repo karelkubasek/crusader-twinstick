@@ -19,9 +19,11 @@ class ConfigTests(unittest.TestCase):
             self.addCleanup(active.stop)
 
     def test_settings_roundtrip_and_isolated_game_paths(self):
-        value = {**core.DEFAULTS, "deadzone": 20, "aim_deadzone": 60, "hysteresis": 8}
-        core.save_settings(value)
-        self.assertEqual(core.load_settings(), value)
+        for movement, aim in ((20, 60), (60, 20)):
+            value = {**core.DEFAULTS, "deadzone": movement, "aim_deadzone": aim, "hysteresis": 8}
+            with self.subTest(movement=movement, aim=aim):
+                core.save_settings(value)
+                self.assertEqual(core.load_settings(), value)
         config = core.read_config()[core.TARGET]
         self.assertEqual(config["path"], str(core.DATA))
         self.assertEqual(config["savepath"], str(core.SAVES))
@@ -38,7 +40,12 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(core.read_config()[core.TARGET]["keymap_remorse_ATTACK"], "SPACE JOY_Y")
 
     def test_default_gamepad_mappings_have_one_owner(self):
+        self.assertEqual(core.TARGET, "remorse-twin-stick")
         core.save_settings(core.DEFAULTS)
+        self.assertEqual(core.load_settings(), core.DEFAULTS)
+        self.assertEqual(core.read_config()[core.TARGET]["crusader_twin_stick"], "true")
+        self.assertEqual(core.controller_labels()["JOY_LEFT_STICK_X-"], ["Move"])
+        self.assertEqual(core.controller_labels()["JOY_RIGHT_STICK_X-"], ["Aim"])
         owners = {}
         for action, value in core.read_config()[core.TARGET].items():
             if not action.startswith("keymap_"):
@@ -70,7 +77,8 @@ class ConfigTests(unittest.TestCase):
         core.save_settings(core.DEFAULTS)
         saved = core.CONFIG.read_bytes()
         for changes in ({"deadzone": 0}, {"deadzone": 99}, {"aim_deadzone": 101},
-                        {"aim_deadzone": 0}, {"hysteresis": 15}, {"deadzone": "15"}):
+                        {"aim_deadzone": 0}, {"aim_deadzone": 99}, {"aim_deadzone": 5},
+                        {"hysteresis": 15}, {"deadzone": "15"}):
             with self.subTest(changes=changes):
                 with self.assertRaises(ValueError):
                     core.save_settings({**core.DEFAULTS, **changes})

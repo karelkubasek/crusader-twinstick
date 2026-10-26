@@ -40,7 +40,8 @@ import tools and their native dependencies, removes host-specific ELF paths
 with patchelf, records exact components, gathers notices and downloads verified
 upstream component source archives. It excludes the system C library and
 platform graphics/audio drivers. `BUILD-INFO.json` records the required glibc
-version. Linux x86_64 with a graphical session is the supported release target.
+version and the launcher release version from `modern/__init__.py`.
+Linux x86_64 with a graphical session is the supported release target.
 
 The builder writes under ignored `dist/` and `build/` directories. The player
 archive must be offered together with `CrusaderTwinStick-source.tar.gz` and

@@ -4,24 +4,63 @@ An unofficial Linux launcher for **Crusader: No Remorse**, with independent
 left-stick movement, right-stick aiming, and a configurable gamepad layout.
 Powered by a locally modified ScummVM engine.
 
+Version **1.0.0** is the first stable release. See the [release notes](CHANGELOG.md)
+for features, supported platforms and testing limits. Run `./start.sh --version`
+to check the launcher version.
+
 ## Play
 
 Unpack a complete portable release and run `start.sh`. The first build targets
 Linux x86_64 with glibc 2.38 or newer and a working desktop graphics/audio stack.
 Python/Tk, SDL, the game runtime and import tools are bundled.
 
-The default **Game** tab accepts either your GOG offline installer or an
-existing complete game folder. It checks the supported GOG English 1.21 data,
-installs a private copy, and then offers **Play Crusader**. Your source files
-are left alone. The other tabs retain the controller diagram, button remapping,
-fullscreen setting and independent stick deadzones.
+The hub accepts either your GOG offline installer or an existing complete
+game folder. It checks the supported GOG English 1.21 data and installs a private
+copy, leaving your source files alone. Once installed, choose **Play Crusader**,
+**Controller layout** or **Settings**. Controller layout provides the diagram,
+button remapping and SVG export; Settings provides independent stick deadzones
+and the live preview. Fullscreen and opening-movie choices stay on the hub.
+
+Play opens Crusader's original main menu, where you can choose **New Game**
+or **Load Game**. New Game opens difficulty selection. **Skip opening movies**
+is checked by default beside Fullscreen; uncheck it to watch the startup movies.
+Press **Y** to skip a movie while it is playing. Mission cutscenes remain enabled.
+
+Twin-stick movement smooths rendered positions between simulation frames and
+keeps walking cycles continuous with the weapon drawn or holstered.
 
 The Silencer portrait is extracted from your GOG icon when available. Game
 files and artwork are not included in this repository or release archives.
+A private PNG at `user-data/artwork/launcher.png` overrides that portrait (under
+`CRUSADER_TWINSTICK_HOME` when set). The launcher fits the complete image into
+the artwork panel, preserving its proportions and keeping logos and heads visible.
 
 In Steam Deck Desktop Mode, hold **≡ Menu** to select the Gamepad action set.
 For Gaming Mode, add `start.sh` as a non-Steam game with a Gamepad layout and
 Proton disabled. The launcher also works with ordinary Linux gamepads.
+The Desktop Mode hint is hidden for explicitly identified Gamescope sessions;
+it remains visible in desktop sessions and when the session cannot be identified.
+
+In the launcher, use **D-pad** to move focus, **A** to select, **B** to go back,
+and **LB/RB** to switch pages. Left/right adjusts a focused stick setting;
+the sticks remain available for the live preview in Settings.
+Controller input waits for neutral after returning from the game or changing
+pages, so a held button cannot select an action in the new screen.
+
+In the original game menu, use the **D-pad** and **A** to choose an entry or
+difficulty. The focused main-menu option uses the original brightened artwork,
+with the same selection shared by controller, keyboard and mouse hover.
+**B/Y** or **Escape** returns from difficulty selection to the main
+menu. The quit confirmation starts on **No**; select **Yes** with the
+**D-pad**, then press **A** to quit. **B/Y** cancels menus; **A/Y** skips movies. These are GUI defaults
+and respect explicit ScummVM GUI remaps. Body poses have a small direction
+buffer to avoid jitter near animation-sector boundaries; projectile aim stays
+continuous. The following camera and avatar share position interpolation
+between simulation frames. The walking sprites
+also compensate their original frame-origin changes along the gait direction,
+retaining normal bobbing. Unarmed sprites have eight facings and armed poses can
+have sixteen; movement and aiming remain continuous. The [reference-engine comparison](docs/CONTROLLER-COMPARISON.md)
+records the source review, runtime results and remaining feature decisions.
 
 ## Local files
 

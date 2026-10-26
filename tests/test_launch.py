@@ -49,6 +49,7 @@ class LaunchTests(unittest.TestCase):
         section = core.read_config()[core.TARGET]
         self.assertEqual(section["crusader_modern_controls"], "true")
         self.assertEqual(section["crusader_twin_stick"], "true")
+        self.assertEqual(section["skip_intro"], "true")
         self.assertEqual(section["savepath"], str(core.SAVES))
 
     def test_remapper_keeps_existing_sdl_driver_and_opens_launcher(self):
@@ -57,8 +58,21 @@ class LaunchTests(unittest.TestCase):
         self.assertNotIn(core.TARGET, popen.call_args.args[0])
         self.assertEqual(popen.call_args.kwargs["env"]["SDL_JOYSTICK_LINUX_CLASSIC"], "0")
 
+    def test_existing_install_gains_default_movie_preference_on_cli_launch(self):
+        core.save_settings(core.DEFAULTS)
+        config = core.read_config()
+        del config[core.TARGET]["skip_intro"]
+        config[core.TARGET]["keymap_remorse_ATTACK"] = "SPACE JOY_Y"
+        with core.CONFIG.open("w") as stream:
+            config.write(stream)
+        with patch.object(core.subprocess, "Popen"):
+            core.launch()
+        section = core.read_config()[core.TARGET]
+        self.assertEqual(section["skip_intro"], "true")
+        self.assertEqual(section["keymap_remorse_ATTACK"], "SPACE JOY_Y")
+
     def test_relocation_rebinds_paths_without_resetting_controls(self):
-        core.save_settings({**core.DEFAULTS, "deadzone": 23, "fullscreen": False})
+        core.save_settings({**core.DEFAULTS, "deadzone": 23, "fullscreen": False, "skip_intro": False})
         config = core.read_config()
         config[core.TARGET]["path"] = "/old/location/game-data"
         config[core.TARGET]["keymap_remorse_ATTACK"] = "SPACE JOY_Y"
@@ -73,6 +87,7 @@ class LaunchTests(unittest.TestCase):
         self.assertEqual(config[core.TARGET]["keymap_remorse_ATTACK"], "SPACE JOY_Y")
         self.assertEqual(core.load_settings()["deadzone"], 23)
         self.assertFalse(core.load_settings()["fullscreen"])
+        self.assertFalse(core.load_settings()["skip_intro"])
 
 
 if __name__ == "__main__":

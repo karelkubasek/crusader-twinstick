@@ -3,13 +3,13 @@
 import xml.etree.ElementTree as ET
 
 
-BG = "#111a23"
-CARD = "#182430"
-LINE = "#344755"
-TEXT = "#e9f0f4"
-MUTED = "#a5b7c4"
-ACCENT = "#efb55b"
-TEAL = "#78d4bf"
+BG = "#15100f"
+CARD = "#231917"
+LINE = "#65473d"
+TEXT = "#f5e9df"
+MUTED = "#c6b0a3"
+ACCENT = "#ff8a3d"
+TEAL = "#df8067"
 WIDTH, HEIGHT = 1120, 454
 
 
@@ -116,10 +116,10 @@ def controller_scene(labels):
         return points
 
     for x in (386, 649):
-        scene.rect(x, 100, 85, 41, "#263847", "#4c616f", 14)
-        scene.rect(x+9, 106, 67, 5, "#3a5060", radius=2)
+        scene.rect(x, 100, 85, 41, "#302321", "#78544b", 14)
+        scene.rect(x+9, 106, 67, 5, "#4a312b", radius=2)
     for x in (371, 651):
-        scene.rect(x, 131, 98, 28, "#304452", "#587080", 11)
+        scene.rect(x, 131, 98, 28, "#3d2a26", "#886056", 11)
     outline = silhouette((430, 137), (
         ((470, 127), (650, 127), (690, 137)),
         ((735, 137), (766, 158), (778, 199)),
@@ -134,23 +134,23 @@ def controller_scene(labels):
         ((302, 326), (323, 251), (342, 199)),
         ((354, 158), (385, 137), (430, 137)),
     ))
-    scene.polygon(outline, "#1b2935", "#506575")
-    scene.line([(345, 247), (353, 288), (371, 328), (392, 355)], "#293e4d", 2)
-    scene.line([(775, 247), (767, 288), (749, 328), (728, 355)], "#293e4d", 2)
-    scene.line([(395, 149), (460, 142)], "#71818b", 2)
-    scene.line([(660, 142), (725, 149)], "#71818b", 2)
+    scene.polygon(outline, "#261c19", "#75534b")
+    scene.line([(345, 247), (353, 288), (371, 328), (392, 355)], "#3b2925", 2)
+    scene.line([(775, 247), (767, 288), (749, 328), (728, 355)], "#3b2925", 2)
+    scene.line([(395, 149), (460, 142)], "#a28679", 2)
+    scene.line([(660, 142), (725, 149)], "#a28679", 2)
 
-    scene.circle(560, 175, 17, "#273c48", "#657d8b")
-    scene.line([(552, 167), (560, 173), (568, 183)], "#c4d7d9", 2)
-    scene.line([(568, 167), (560, 173), (552, 183)], "#c4d7d9", 2)
-    scene.text(560, 247, "CRUSADER", 11, "#6c8392", "middle", True)
+    scene.circle(560, 175, 17, "#392823", "#98776a")
+    scene.line([(552, 167), (560, 173), (568, 183)], "#ddc7b9", 2)
+    scene.line([(568, 167), (560, 173), (552, 183)], "#ddc7b9", 2)
+    scene.text(560, 247, "CRUSADER", 11, "#a48475", "middle", True)
 
     for x, y in ((428, 219), (623, 286)):
-        scene.circle(x, y, 32, "#0d1720", "#4c616f")
-        scene.circle(x, y, 23, "#293d4b", "#69808e")
-        scene.circle(x, y, 17, "#1d2d39", "#3c5261")
+        scene.circle(x, y, 32, "#130e0c", "#78544b")
+        scene.circle(x, y, 23, "#3c2a24", "#a08272")
+        scene.circle(x, y, 17, "#2c1d18", "#6a493c")
     for x in (492, 628):
-        scene.circle(x, 209, 11, "#243745", "#506575")
+        scene.circle(x, 209, 11, "#35251f", "#75534b")
     scene.rect(487, 205, 7, 7, "none", MUTED)
     scene.rect(490, 208, 7, 7, "none", MUTED)
     for y in (205, 209, 213):
@@ -158,12 +158,12 @@ def controller_scene(labels):
 
     for text, x, y, color in (("Y", 696, 191, "#e8c46a"), ("X", 668, 219, "#85b8dd"),
                                ("B", 724, 219, "#e39a96"), ("A", 696, 247, "#91cf9e")):
-        scene.circle(x, y, 14, "#0d1720", "#4c616f")
+        scene.circle(x, y, 14, "#130e0c", "#78544b")
         scene.text(x, y, text, 14, color, "middle", True)
-    scene.circle(498, 286, 32, "#0e1821", "#4c616f")
-    scene.rect(488, 262, 20, 48, "#2b4050", "#587080", 3)
-    scene.rect(474, 276, 48, 20, "#2b4050", "#587080", 3)
-    scene.circle(498, 286, 6, "#253846")
+    scene.circle(498, 286, 32, "#170f0c", "#78544b")
+    scene.rect(488, 262, 20, 48, "#422c23", "#886056", 3)
+    scene.rect(474, 276, 48, 20, "#422c23", "#886056", 3)
+    scene.circle(498, 286, 6, "#35241e")
     for text, x, y in (("↑", 498, 269), ("↓", 498, 303), ("←", 481, 286), ("→", 515, 286)):
         scene.text(x, y, text, 12, TEAL, "middle", True)
 
@@ -180,9 +180,9 @@ def controller_scene(labels):
         size = 16 if len(value) <= 18 else 13 if len(value) <= 25 else 11
         if x < WIDTH / 2:
             route = [(min(250, x+53+len(value)*size*.6+12), y), *route[1:]]
-        scene.line(route, "#587080", 1.3)
+        scene.line(route, "#886056", 1.3)
         scene.circle(*route[-1], 2.5, tint)
-        scene.rect(x, y-13, 42, 26, "#233440", radius=6)
+        scene.rect(x, y-13, 42, 26, "#33221d", radius=6)
         scene.text(x+21, y, button, 13, tint, "middle", True)
         scene.text(x+53, y, value, size, TEXT if value != "Unassigned" else MUTED)
 
@@ -208,7 +208,7 @@ def controller_scene(labels):
                                   (627, "Menu", "JOY_START", (628, 209))):
         scene.text(x, 30, button, 12, ACCENT, "middle", True)
         scene.text(x, 51, description(key), 15, TEXT, "middle")
-        scene.line([(x, 69), target], "#587080", 1.3)
+        scene.line([(x, 69), target], "#886056", 1.3)
         scene.circle(*target, 2.5, ACCENT)
     scene.text(560, 433, "LS / RS = stick movement     ·     L3 / R3 = stick click", 13, MUTED, "middle")
     return scene

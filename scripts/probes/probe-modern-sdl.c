@@ -69,3 +69,16 @@ int crusader_probe_key(int scancode, int down) {
     event.key.keysym.sym = SDL_GetKeyFromScancode(scancode);
     return SDL_PushEvent(&event);
 }
+
+int crusader_probe_mouse(int x, int y) {
+    SDL_Window *window = SDL_GetKeyboardFocus();
+    if (!window)
+        return -1;
+    SDL_WarpMouseInWindow(window, x, y);
+    SDL_Event event = {0};
+    event.type = SDL_MOUSEMOTION;
+    event.motion.windowID = SDL_GetWindowID(window);
+    event.motion.x = x;
+    event.motion.y = y;
+    return SDL_PushEvent(&event);
+}

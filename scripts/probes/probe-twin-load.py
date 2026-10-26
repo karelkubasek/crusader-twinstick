@@ -41,11 +41,6 @@ def axis(name, value):
 def position(value):
     return value["x"], value["y"], value["z"]
 
-def button(number, down):
-    result = gdb.parse_and_eval("(int)crusader_probe_button(%d, %d)" % (number, down))
-    if int(result) != 1:
-        raise AssertionError("SDL button event was not queued")
-
 def check(condition, name, before, after):
     results.append({"test": name, "passed": bool(condition), "before": before, "after": after})
     if not condition:
@@ -60,28 +55,7 @@ def aim(name, value):
     number = 2 if name in ("LEFT", "RIGHT") else 3
     raw_axis(number, -value if name in ("LEFT", "UP") else value)
 
-def screen(value):
-    return (value["x"]-value["y"])/4, (value["x"]+value["y"])/8-value["z"]
-
-shots = []
-class ShotCapture(gdb.Breakpoint):
-    def stop(self):
-        frame = gdb.selected_frame()
-        try:
-            if int(frame.read_var("source")) == 1:
-                shots.append({key: int(frame.read_var(key)) for key in ("sx", "sy", "sz", "dx", "dy", "dz", "firetype")})
-        except gdb.error:
-            pass
-        return False
-ShotCapture("Ultima::Ultima8::SuperSpriteProcess::SuperSpriteProcess")
-saved_states = []
-class SaveCapture(gdb.Breakpoint):
-    def stop(self):
-        saved_states.append(state())
-        return False
-SaveCapture("Ultima::Ultima8::Ultima8Engine::saveGameStream")
-
-report = {"coverage": "Twin-stick first-mission probe; real SDL input, actor positions and projectile constructors", "results": results}
+report = {"coverage": "Twin-stick load probe; real SDL input and serialized actor state", "results": results}
 try:
     gdb.execute("run", to_string=True)
     for _ in range(1200):

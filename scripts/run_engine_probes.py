@@ -38,9 +38,12 @@ def write_config(path, target, saves):
 
 def prepare_fixtures(fixtures, group):
     copies = []
-    if group in ("movement", "save-load", "all"):
+    if group in ("movement", "animation", "save-load", "all"):
         copies.append((fixtures / "twin-integration-saves/remorse-twin-stick.001",
                        ROOT / "runtime/twin-integration-saves/remorse-twin-stick.001"))
+    if group in ("startup", "all"):
+        copies.append((fixtures / "twin-integration-saves/remorse-twin-stick.001",
+                       ROOT / "runtime/startup/saves/remorse-twin-stick.001"))
     if group in ("gameplay", "all"):
         for slot in ("000", "001"):
             copies.append((fixtures / f"opening-saves/remorse-opening-probe.{slot}",
@@ -57,8 +60,10 @@ def run_probe(script, config, slot, target, report, environment, safe_path):
     report.unlink(missing_ok=True)
     command = ["gdb", "-q", "-batch", "-iex", "add-auto-load-safe-path " + str(safe_path),
                "-x", str(ROOT / "scripts/probes" / script), "--args",
-               str(ROOT / "build/scummvm/scummvm"), "--config=" + str(config),
-               "--save-slot=" + str(slot), target]
+               str(ROOT / "build/scummvm/scummvm"), "--config=" + str(config)]
+    if slot is not None:
+        command.append("--save-slot=" + str(slot))
+    command.append(target)
     log = report.with_suffix(".log")
     with log.open("w") as output:
         process = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=output,
@@ -77,7 +82,7 @@ def run_probe(script, config, slot, target, report, environment, safe_path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("group", nargs="?", choices=("movement", "save-load", "gameplay", "all"), default="all")
+    parser.add_argument("group", nargs="?", choices=("movement", "animation", "save-load", "gameplay", "startup", "all"), default="all")
     parser.add_argument("--fixtures", type=Path, default=core.STATE / "test-fixtures")
     args = parser.parse_args()
     core.prepare_data()
@@ -104,6 +109,41 @@ def main():
                          ROOT / f"runtime/twin-{action}-results.json"))
     for job in jobs:
         run_probe(*job, environment, safe_path)
+    if args.group in ("animation", "all"):
+        for stance in ("holstered", "drawn", "classic"):
+            config_path = ROOT / f"runtime/animation-{stance}.ini"
+            write_config(config_path, "remorse-twin-stick", ROOT / "runtime/twin-integration-saves")
+            if stance == "classic":
+                config = configparser.ConfigParser(interpolation=None)
+                config.optionxform = str
+                config.read(config_path)
+                config["remorse-twin-stick"]["crusader_modern_controls"] = "false"
+                with config_path.open("w") as output:
+                    config.write(output, space_around_delimiters=False)
+            run_probe("probe-twin-animation.py", config_path, 1, "remorse-twin-stick",
+                      ROOT / f"runtime/animation-{stance}.json",
+                      {**environment, "CRUSADER_ANIMATION_CASE": stance}, safe_path)
+    if args.group in ("startup", "all"):
+        for scenario in ("movies", "skip", "classic", "load", "menu-load"):
+            config_path = ROOT / f"runtime/startup/{scenario}.ini"
+            write_config(config_path, "remorse-twin-stick", ROOT / "runtime/startup/saves")
+            config = configparser.ConfigParser(interpolation=None)
+            config.optionxform = str
+            config.read(config_path)
+            section = config["remorse-twin-stick"]
+            section["skip_intro"] = "false" if scenario in ("movies", "classic") else "true"
+            section["lastSave"] = "1"
+            config["scummvm"]["gui_saveload_chooser"] = "list"
+            if scenario == "classic":
+                section["crusader_modern_controls"] = "false"
+                for key in list(section):
+                    if key.startswith("keymap_remorse_"):
+                        del section[key]
+            with config_path.open("w") as output:
+                config.write(output, space_around_delimiters=False)
+            run_probe("probe-startup.py", config_path, 1 if scenario == "load" else None,
+                      "remorse-twin-stick", ROOT / f"runtime/startup/{scenario}.json",
+                      {**environment, "CRUSADER_STARTUP_SCENARIO": scenario}, safe_path)
     if args.group in ("gameplay", "all"):
         for scenario in ("opening_downright", "opening_upstep", "opening_right", "camera", "robot"):
             report = ROOT / f"runtime/opening-investigation/fixed-{scenario}.json"

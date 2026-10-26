@@ -4,7 +4,7 @@ import json
 import subprocess
 import sys
 
-from . import core
+from . import __version__, core
 from .install import import_game, installation_status
 
 def gui():
@@ -13,6 +13,7 @@ def gui():
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--version", action="version", version=f"Crusader Twin Stick {__version__}")
     parser.add_argument("--play", action="store_true")
     parser.add_argument("--install", metavar="SOURCE", help="Import a GOG installer or complete game folder")
     parser.add_argument("--status", action="store_true", help="Report installation readiness")
